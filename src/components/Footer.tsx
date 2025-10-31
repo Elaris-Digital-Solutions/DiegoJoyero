@@ -22,7 +22,7 @@ export function Footer() {
     >
       <div className="max-w-6xl mx-auto px-6 py-16 space-y-16">
         <div className="flex flex-col items-center text-center gap-5">
-          <img src="/assets/Asset-2.svg" alt="Diego Joyero" className="w-32" />
+          <img src="/assets/Asset-1.svg" alt="Diego Joyero" className="w-32" />
           <p className="text-xs uppercase tracking-[0.45em]" style={{ color: 'var(--textSecondary)' }}>
             Maison de joaillerie
           </p>
