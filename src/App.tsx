@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { CartProvider } from './contexts/CartContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
@@ -30,28 +31,31 @@ function ScrollManager() {
 }
 
 function App() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <ScrollManager />
-  <div className="min-h-screen transition-colors duration-500 flex flex-col" style={{ backgroundColor: 'var(--background)' }}>
-          <Header onCartToggle={() => setIsCartOpen((prev) => !prev)} isCartOpen={isCartOpen} />
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/colecciones" element={<ColeccionesPage />} />
-              <Route path="/nosotros" element={<NosotrosPage />} />
-              <Route path="/contacto" element={<ContactoPage />} />
-              <Route path="/producto/:id" element={<ProductPage />} />
-            </Routes>
-          </main>
-          <Footer />
-          <WhatsappButton />
-          <CartDrawer open={isCartOpen} onClose={() => setIsCartOpen(false)} />
-        </div>
-      </BrowserRouter>
+      <CartProvider>
+        <BrowserRouter>
+          <ScrollManager />
+          <div
+            className="min-h-screen flex flex-col transition-colors duration-500"
+            style={{ backgroundColor: 'var(--background)' }}
+          >
+            <Header />
+            <main className="flex-1">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/colecciones" element={<ColeccionesPage />} />
+                <Route path="/nosotros" element={<NosotrosPage />} />
+                <Route path="/contacto" element={<ContactoPage />} />
+                <Route path="/producto/:id" element={<ProductPage />} />
+              </Routes>
+            </main>
+            <Footer />
+            <WhatsappButton />
+            <CartDrawer />
+          </div>
+        </BrowserRouter>
+      </CartProvider>
     </ThemeProvider>
   );
 }

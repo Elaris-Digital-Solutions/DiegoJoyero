@@ -99,7 +99,7 @@ export function ColeccionesPage() {
       {
         title: 'Colección Archivo',
         body:
-          'Reediciones de los diseños más emblemáticos de la maison, inspiradas en nuestros archivos originales de 2023.',
+          'Reediciones de los diseños más emblemáticos de la maison, inspiradas en nuestros archivos originales de 2024.',
       },
       {
         title: 'Selección Contemporánea',

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
 import { supabase, Product } from '../lib/supabase';
+import { fallbackProducts } from '../lib/fallbackProducts';
+import { useCart } from '../contexts/CartContext';
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 28 },
@@ -27,6 +29,18 @@ export function ProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { addItem } = useCart();
+
+  const findFallbackProduct = (productId: string | undefined) => {
+    if (!productId) return null;
+    for (const collection of Object.values(fallbackProducts)) {
+      const candidate = collection.find((item) => item.id === productId);
+      if (candidate) {
+        return candidate;
+      }
+    }
+    return null;
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -42,12 +56,34 @@ export function ProductPage() {
         .maybeSingle();
 
       if (fetchError) {
-        setError('No se pudo obtener la información de la pieza.');
-        setProduct(null);
-      } else {
-        setProduct(data ?? null);
+        console.error('Error al obtener la pieza desde Supabase:', fetchError);
       }
 
+      if (fetchError || !data) {
+        const fallbackProduct = findFallbackProduct(id);
+        if (fallbackProduct) {
+          setProduct(fallbackProduct);
+          setError(null);
+        } else {
+          setProduct(null);
+          setError('No se pudo obtener la información de la pieza.');
+        }
+        setLoading(false);
+        return;
+      }
+
+      const fallbackProduct = findFallbackProduct(id);
+      const resolvedProduct = fallbackProduct
+        ? {
+            ...fallbackProduct,
+            ...data,
+            description: data.description || fallbackProduct.description,
+            image_url: data.image_url || fallbackProduct.image_url,
+          }
+        : data;
+
+      setProduct(resolvedProduct);
+      setError(null);
       setLoading(false);
     };
 
@@ -89,6 +125,17 @@ export function ProductPage() {
       </motion.section>
     );
   }
+
+  const isAvailable = (product?.stock ?? 0) > 0;
+  const formattedPrice = useMemo(() => {
+    if (!product) return '';
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(product.price);
+  }, [product]);
+
+  const handleAddToCart = () => {
+    if (!product || !isAvailable) return;
+    addItem(product);
+  };
 
   return (
     <motion.section
@@ -136,7 +183,7 @@ export function ProductPage() {
                   Inversión
                 </span>
                 <p className="text-base tracking-[0.3em] uppercase" style={{ color: 'var(--primary)' }}>
-                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(product.price)}
+                  {formattedPrice}
                 </p>
               </div>
             </div>
@@ -149,13 +196,15 @@ export function ProductPage() {
           </div>
 
           <div className="flex flex-wrap gap-6 pt-4 text-xs uppercase tracking-[0.45em]">
-            <a
-              href="#contact"
-              className="border-b border-transparent hover:border-[var(--primary)]"
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={!isAvailable}
+              className="border-b border-transparent transition-colors duration-300 hover:border-[var(--primary)] disabled:opacity-60 disabled:cursor-not-allowed"
               style={{ color: 'var(--primary)' }}
             >
-              Solicitar esta pieza
-            </a>
+              {isAvailable ? 'Agregar al carrito' : 'Sin stock' }
+            </button>
             <Link
               to="/"
               className="border-b border-transparent hover:border-[var(--primary)]"

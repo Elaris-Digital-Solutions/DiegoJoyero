@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, X } from 'lucide-react';
 
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase, type Product } from '../lib/supabase';
 import { fallbackProducts } from '../lib/fallbackProducts';
 import { Button } from './ui/button';
+import { useCart } from '../contexts/CartContext';
 
 interface ShowcaseItem {
   id: string;
@@ -18,6 +19,7 @@ interface ShowcaseItem {
   image: string;
   details: string[];
   href: string;
+  product: Product;
 }
 
 const formatPrice = (price: number) =>
@@ -65,10 +67,12 @@ const mapProductToShowcase = (product: Product): ShowcaseItem => ({
     'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&h=1200&fit=crop&auto=format&dpr=1',
   details: buildDetails(product),
   href: `/producto/${product.id}`,
+  product,
 });
 
 export function FeaturedProducts() {
   const { theme } = useTheme();
+  const { addItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -370,8 +374,11 @@ export function FeaturedProducts() {
                     </div>
 
                     <div className="flex flex-col gap-4 pt-4">
-                      <Button className="w-full py-6 text-sm font-light uppercase tracking-[0.25em]">
-                        Solicitar información
+                      <Button
+                        className="w-full py-6 text-sm font-light uppercase tracking-[0.25em]"
+                        onClick={() => addItem(selectedItem.product)}
+                      >
+                        <ShoppingBag className="mr-3 h-4 w-4" /> Agregar al carrito
                       </Button>
                       <Button asChild variant="outline" className="w-full py-6 text-sm uppercase tracking-[0.25em]">
                         <Link to={selectedItem.href} onClick={() => setSelectedItem(null)}>

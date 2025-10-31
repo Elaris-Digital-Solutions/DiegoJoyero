@@ -4,8 +4,8 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const contactDetails = [
   { label: 'Atelier', value: 'Lima, Perú', icon: MapPin },
-  { label: 'Teléfono', value: '+51 1 2345 6789', icon: Phone, href: 'tel:+51992856599' },
- 
+  { label: 'Teléfono', value: '+51 992 856 599', icon: Phone, href: 'tel:+51992856599' },
+
   {
     label: 'Trabaja con nosotros',
     value: 'partnersdiegojoyero@gmail.com',
@@ -96,7 +96,7 @@ export function Footer() {
               ))}
             </ul>
 
-            <div className="flex gap-6">
+            <div className="flex flex-wrap items-center gap-4 md:gap-6">
               {networks.map(({ name, href, icon: Icon }) => (
                 <a
                   key={name}

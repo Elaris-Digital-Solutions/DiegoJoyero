@@ -2,11 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-
-interface HeaderProps {
-  onCartToggle: () => void;
-  isCartOpen: boolean;
-}
+import { useCart } from '../contexts/CartContext';
 
 const navItems = [
   { label: 'Inicio', to: '/' },
@@ -15,8 +11,9 @@ const navItems = [
   { label: 'Contacto', to: '/contacto' },
 ];
 
-export function Header({ onCartToggle, isCartOpen }: HeaderProps) {
+export function Header() {
   const { theme, toggleTheme, isTransitioning } = useTheme();
+  const { toggleCart, isOpen, totalItems } = useCart();
   const [isCompact, setIsCompact] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const animationTimeoutRef = useRef<number>();
@@ -108,17 +105,22 @@ export function Header({ onCartToggle, isCartOpen }: HeaderProps) {
               <div className="flex items-center gap-6">
                 <button
                   type="button"
-                  onClick={onCartToggle}
+                  onClick={toggleCart}
                   className="flex items-center gap-3 border-b focus:outline-none hover:border-[var(--primary)] transition-colors duration-300"
                   style={{
                     color: 'var(--text)',
-                    borderColor: isCartOpen ? 'var(--primary)' : 'transparent',
+                    borderColor: isOpen ? 'var(--primary)' : 'transparent',
                   }}
                   aria-label="Ver carrito"
-                  aria-expanded={isCartOpen}
+                  aria-expanded={isOpen}
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span className="text-[0.62rem] uppercase tracking-[0.35em]">Carrito</span>
+                  {totalItems > 0 ? (
+                    <span className="text-[0.58rem] uppercase tracking-[0.3em]" style={{ color: 'var(--primary)' }}>
+                      ({totalItems})
+                    </span>
+                  ) : null}
                 </button>
 
                 <div className="flex flex-col items-end text-right">
@@ -147,7 +149,7 @@ export function Header({ onCartToggle, isCartOpen }: HeaderProps) {
                   />
               </Link>
               <p className="text-xs uppercase tracking-[0.4em]" style={{ color: 'var(--textSecondary)' }}>
-                Diego Joyero · Lima 2023
+                Diego Joyero · Lima 2024
               </p>
             </div>
 
@@ -190,17 +192,22 @@ export function Header({ onCartToggle, isCartOpen }: HeaderProps) {
             <div className="flex items-center gap-6 shrink-0">
               <button
                 type="button"
-                onClick={onCartToggle}
+                onClick={toggleCart}
                 className="flex items-center gap-2 border-b focus:outline-none hover:border-[var(--primary)] transition-colors duration-300"
                 style={{
                   color: 'var(--text)',
-                  borderColor: isCartOpen ? 'var(--primary)' : 'transparent',
+                  borderColor: isOpen ? 'var(--primary)' : 'transparent',
                 }}
                 aria-label="Ver carrito"
-                aria-expanded={isCartOpen}
+                aria-expanded={isOpen}
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span className="text-[0.58rem] uppercase tracking-[0.35em]">Carrito</span>
+                {totalItems > 0 ? (
+                  <span className="text-[0.54rem] uppercase tracking-[0.3em]" style={{ color: 'var(--primary)' }}>
+                    ({totalItems})
+                  </span>
+                ) : null}
               </button>
 
               <div className="flex flex-col items-end text-right leading-none">
