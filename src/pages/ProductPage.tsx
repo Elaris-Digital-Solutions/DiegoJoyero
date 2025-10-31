@@ -49,6 +49,18 @@ export function ProductPage() {
       setLoading(true);
       setError(null);
 
+      if (!supabase) {
+        const fallbackProduct = findFallbackProduct(id);
+        if (fallbackProduct) {
+          setProduct(fallbackProduct);
+        } else {
+          setProduct(null);
+          setError('No se pudo obtener la información de la pieza.');
+        }
+        setLoading(false);
+        return;
+      }
+
       const { data, error: fetchError } = await supabase
         .from('products')
         .select('*')

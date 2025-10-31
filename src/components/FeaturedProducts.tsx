@@ -83,6 +83,15 @@ export function FeaturedProducts() {
 
     const fetchFeaturedProducts = async () => {
       setLoading(true);
+
+      if (!supabase) {
+        setProducts(fallbackProducts[theme]);
+        setLoading(false);
+        setCurrentIndex(0);
+        setSelectedItem(null);
+        return;
+      }
+
       try {
         const { data, error } = await supabase
           .from('products')

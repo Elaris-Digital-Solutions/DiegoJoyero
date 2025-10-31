@@ -36,6 +36,22 @@ export function CollectionPreview() {
     const load = async () => {
       setIsLoading(true);
 
+      const buildFallback = () => {
+        const fallback = [...fallbackProducts[theme]].sort((a, b) => {
+          if (a.featured === b.featured) {
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          }
+          return a.featured ? -1 : 1;
+        });
+        return fallback.slice(0, 3);
+      };
+
+      if (!supabase) {
+        setPreview({ products: buildFallback(), isFallback: true });
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const { data, error } = await supabase
           .from('products')
@@ -51,24 +67,12 @@ export function CollectionPreview() {
         if (data && data.length > 0) {
           setPreview({ products: data.slice(0, 3), isFallback: false });
         } else {
-          const fallback = [...fallbackProducts[theme]].sort((a, b) => {
-            if (a.featured === b.featured) {
-              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            }
-            return a.featured ? -1 : 1;
-          });
-          setPreview({ products: fallback.slice(0, 3), isFallback: true });
+          setPreview({ products: buildFallback(), isFallback: true });
         }
       } catch (error) {
         console.error('Error loading collection preview:', error);
         if (!isMounted) return;
-        const fallback = [...fallbackProducts[theme]].sort((a, b) => {
-          if (a.featured === b.featured) {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          }
-          return a.featured ? -1 : 1;
-        });
-        setPreview({ products: fallback.slice(0, 3), isFallback: true });
+        setPreview({ products: buildFallback(), isFallback: true });
       } finally {
         if (isMounted) {
           setIsLoading(false);

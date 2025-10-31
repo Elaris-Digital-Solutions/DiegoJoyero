@@ -83,6 +83,13 @@ export function ProductCatalog() {
       setLoading(true);
       setIsUsingFallback(false);
 
+      if (!supabase) {
+        setProducts(fallbackProducts[theme]);
+        setIsUsingFallback(true);
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data, error } = await supabase
           .from('products')
