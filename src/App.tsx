@@ -9,6 +9,8 @@ import { ProductPage } from './pages/ProductPage';
 import { ColeccionesPage } from './pages/Colecciones';
 import { NosotrosPage } from './pages/Nosotros';
 import { ContactoPage } from './pages/Contacto';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { CartDrawer } from './components/CartDrawer';
 import { WhatsappButton } from './components/WhatsappButton';
 
@@ -48,6 +50,8 @@ function App() {
                 <Route path="/nosotros" element={<NosotrosPage />} />
                 <Route path="/contacto" element={<ContactoPage />} />
                 <Route path="/producto/:id" element={<ProductPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/order-success" element={<OrderSuccessPage />} />
               </Routes>
             </main>
             <Footer />

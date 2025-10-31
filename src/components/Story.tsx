@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -41,6 +41,20 @@ const contentVariants = {
 
 export function Story() {
   const { theme } = useTheme();
+  const [imageSrc, setImageSrc] = useState(storyImages[theme]);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImageSrc(storyImages[theme]);
+    setHasError(false);
+  }, [theme]);
+
+  const handleImageError = () => {
+    if (!hasError) {
+      setHasError(true);
+      setImageSrc(storyImages.silver);
+    }
+  };
 
   const narrative = useMemo(
     () => ({
@@ -75,7 +89,13 @@ export function Story() {
           style={{ borderColor: 'var(--border)' }}
           variants={imageVariants}
         >
-          <img src={storyImages[theme]} alt="Atelier Diego Joyero" className="w-full h-full object-cover" />
+          <img
+            src={imageSrc}
+            alt="Atelier Diego Joyero"
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={handleImageError}
+          />
         </motion.figure>
 
         <motion.div className="flex flex-col gap-10" variants={contentVariants}>

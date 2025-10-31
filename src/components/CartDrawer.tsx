@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Minus, Plus, Trash2, X } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 
@@ -6,6 +6,7 @@ const formatPrice = (value: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(value);
 
 export function CartDrawer() {
+  const navigate = useNavigate();
   const {
     isOpen,
     closeCart,
@@ -19,6 +20,11 @@ export function CartDrawer() {
   } = useCart();
 
   const hasItems = items.length > 0;
+
+  const handleCheckout = () => {
+    closeCart();
+    navigate('/checkout');
+  };
 
   return (
     <div
@@ -164,6 +170,17 @@ export function CartDrawer() {
               <span style={{ color: 'var(--textSecondary)' }}>Total estimado</span>
               <span style={{ color: 'var(--text)' }}>{formatPrice(totalPrice)}</span>
             </div>
+            <button
+              type="button"
+              onClick={handleCheckout}
+              className="block w-full border px-5 py-3 text-[0.68rem] uppercase tracking-[0.4em] transition-colors duration-300 hover:bg-[var(--primary)] hover:text-[var(--bg)] hover:border-[var(--primary)]"
+              style={{
+                color: 'var(--text)',
+                borderColor: 'var(--border)',
+              }}
+            >
+              Proceder con la compra
+            </button>
             <Link
               to="/contacto"
               className="block text-center border px-5 py-3 text-[0.68rem] uppercase tracking-[0.4em] transition-colors duration-300 hover:bg-[var(--primary)] hover:text-[var(--bg)] hover:border-[var(--primary)]"
