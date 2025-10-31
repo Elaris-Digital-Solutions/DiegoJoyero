@@ -1,96 +1,80 @@
-import { Instagram, MessageCircle, MapPin, Phone, Mail } from 'lucide-react';
+import { Instagram, Mail, MapPin, Phone } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+
+const contactDetails = [
+  { label: 'Lima, Perú', icon: MapPin },
+  { label: '+51 1 2345 6789', icon: Phone },
+  { label: 'atelier@diegojoyero.com', icon: Mail },
+];
 
 export function Footer() {
   const { theme } = useTheme();
 
+  const networks = [
+    { name: 'Instagram', href: 'https://instagram.com', icon: Instagram },
+  ];
+
   return (
     <footer
-      className="transition-colors duration-500"
-      style={{
-        backgroundColor: theme === 'gold' ? '#2A2420' : '#1A2332',
-        color: '#FFFFFF',
-      }}
+      id="contact"
+      className="border-t"
+      style={{ borderColor: 'var(--border)', backgroundColor: theme === 'gold' ? '#f4efe4' : '#f8f8f8' }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          <div>
-            <h3 className="text-2xl font-serif tracking-wide mb-4">Diego Joyero</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {theme === 'gold'
-                ? 'Excelencia en joyería de oro, donde cada pieza cuenta una historia.'
-                : 'Diseño y elegancia en plata, expresión de tu identidad única.'}
+      <div className="max-w-6xl mx-auto px-6 py-16 space-y-16">
+        <div className="flex flex-col items-center text-center gap-5">
+          <img src="/assets/Asset-2.svg" alt="Diego Joyero" className="w-32" />
+          <p className="text-xs uppercase tracking-[0.45em]" style={{ color: 'var(--textSecondary)' }}>
+            Maison de joaillerie
+          </p>
+        </div>
+
+        <div className="grid gap-12 md:grid-cols-[1.1fr,1fr]">
+          <div className="space-y-6">
+            <h3 className="text-xl font-display" style={{ color: 'var(--text)' }}>
+              Citas privadas
+            </h3>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--textSecondary)' }}>
+              Atendemos únicamente con cita previa en nuestro atelier de Lima. Escríbenos para coordinar una
+              visita personalizada o un servicio de mantenimiento para tus piezas.
             </p>
           </div>
 
-          <div>
-            <h4 className="font-semibold tracking-wider uppercase text-sm mb-6">Navegación</h4>
-            <ul className="space-y-3 text-gray-300 text-sm">
-              <li><a href="#featured" className="hover:text-white transition-colors duration-300">Piezas Destacadas</a></li>
-              <li><a href="#values" className="hover:text-white transition-colors duration-300">Nuestros Pilares</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors duration-300">Nuestra Historia</a></li>
-              <li><a href="#collection" className="hover:text-white transition-colors duration-300">Colección Completa</a></li>
+          <div className="space-y-6">
+            <h3 className="text-xl font-display" style={{ color: 'var(--text)' }}>
+              Contacto directo
+            </h3>
+            <ul className="space-y-3 text-sm" style={{ color: 'var(--textSecondary)' }}>
+              {contactDetails.map(({ label, icon: Icon }) => (
+                <li key={label} className="flex items-center gap-3 uppercase tracking-[0.35em]">
+                  <Icon className="w-4 h-4" />
+                  <span>{label}</span>
+                </li>
+              ))}
             </ul>
-          </div>
 
-          <div>
-            <h4 className="font-semibold tracking-wider uppercase text-sm mb-6">Contacto</h4>
-            <ul className="space-y-3 text-gray-300 text-sm">
-              <li className="flex items-center gap-2 hover:text-white transition-colors duration-300 cursor-pointer">
-                <MapPin className="w-4 h-4" />
-                <span>Lima, Perú</span>
-              </li>
-              <li className="flex items-center gap-2 hover:text-white transition-colors duration-300 cursor-pointer">
-                <Phone className="w-4 h-4" />
-                <span>+51 1 2345 6789</span>
-              </li>
-              <li className="flex items-center gap-2 hover:text-white transition-colors duration-300 cursor-pointer">
-                <Mail className="w-4 h-4" />
-                <span>info@diegojoyero.com</span>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold tracking-wider uppercase text-sm mb-6">Síguenos</h4>
-            <div className="flex gap-4">
-              <a
-                href="https://instagram.com"
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-                style={{
-                  backgroundColor: theme === 'gold' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(0, 212, 255, 0.2)',
-                }}
-                aria-label="Instagram"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a
-                href="https://wa.me"
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-                style={{
-                  backgroundColor: theme === 'gold' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(0, 212, 255, 0.2)',
-                }}
-                aria-label="WhatsApp"
-              >
-                <MessageCircle className="w-5 h-5" />
-              </a>
+            <div className="flex gap-6">
+              {networks.map(({ name, href, icon: Icon }) => (
+                <a
+                  key={name}
+                  href={href}
+                  className="text-xs uppercase tracking-[0.45em] border-b border-transparent hover:border-[var(--primary)]"
+                  style={{ color: 'var(--primary)' }}
+                  aria-label={name}
+                >
+                  <Icon className="w-4 h-4 inline-block mr-2" />
+                  {name}
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        <div
-          className="border-t transition-colors duration-500 pt-8"
-          style={{
-            borderColor: theme === 'gold' ? 'rgba(212, 175, 55, 0.3)' : 'rgba(0, 212, 255, 0.3)',
-          }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm space-y-4 md:space-y-0">
-            <p>© 2024 Diego Joyero. Todos los derechos reservados.</p>
-            <div className="flex gap-6">
-              <a href="#" className="hover:text-white transition-colors duration-300">Política de Privacidad</a>
-              <a href="#" className="hover:text-white transition-colors duration-300">Términos de Servicio</a>
-              <a href="#" className="hover:text-white transition-colors duration-300">Política de Devoluciones</a>
-            </div>
+        <div className="border-t pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[0.65rem] uppercase tracking-[0.4em]" style={{ borderColor: 'var(--border)', color: 'var(--textSecondary)' }}>
+          <span>© 2024 Diego Joyero</span>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-[var(--text)]">Privacidad</a>
+            <a href="#" className="hover:text-[var(--text)]">Términos</a>
+            <a href="#" className="hover:text-[var(--text)]">Garantías</a>
           </div>
         </div>
       </div>

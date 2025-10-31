@@ -1,74 +1,45 @@
-import { Crown, Shield, Sparkles } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
-
 export function Values() {
-  const { theme } = useTheme();
-
   const values = [
     {
-      icon: Crown,
       title: 'Excelencia Artesanal',
-      description: 'Cada pieza es creada con precisión y dedicación por maestros joyeros con décadas de experiencia.',
+      description:
+        'Nuestros maestros artesanos trabajan cada engaste de forma manual, asegurando proporciones exactas y terminaciones pulidas a espejo.',
     },
     {
-      icon: Shield,
       title: 'Compromiso con la Autenticidad',
-      description: 'Certificados de autenticidad en todos nuestros productos, con materiales verificados y garantizados.',
+      description:
+        'Certificados de autenticidad y trazabilidad acompañan cada pieza. Solo utilizamos metales nobles y gemas provenientes de fuentes responsables.',
     },
     {
-      icon: Sparkles,
       title: 'Diseño con Historia',
-      description: 'Nuestras joyas cuentan historias, celebran momentos y perduran a través de las generaciones.',
+      description:
+        'Colecciones inspiradas en los archivos de la maison, reinterpretadas con un lenguaje contemporáneo pensado para perdurar.',
     },
   ];
 
   return (
-    <section id="values" className="py-24 transition-colors duration-500" style={{ backgroundColor: 'var(--background)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16 space-y-4">
-          <h2
-            className="text-4xl md:text-5xl font-serif tracking-wide transition-colors duration-500"
-            style={{ color: 'var(--text)' }}
-          >
-            Nuestros Pilares
+    <section id="values" className="py-24" style={{ backgroundColor: 'var(--background)' }}>
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-16 space-y-3">
+          <span className="text-xs uppercase tracking-[0.5em]" style={{ color: 'var(--textSecondary)' }}>
+            Nuestros pilares
+          </span>
+          <h2 className="text-4xl md:text-5xl font-display" style={{ color: 'var(--text)' }}>
+            Valores inquebrantables
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-12">
-          {values.map((value, index) => {
-            const Icon = value.icon;
-            return (
-              <div
-                key={index}
-                className="group text-center transition-all duration-500 hover:scale-105"
-              >
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-500 group-hover:shadow-xl"
-                  style={{
-                    backgroundColor: 'var(--secondary)',
-                    color: 'var(--primary)',
-                    boxShadow: `0 10px 30px var(--shadow)`,
-                  }}
-                >
-                  <Icon className="w-10 h-10" />
-                </div>
-
-                <h3
-                  className="text-2xl font-serif mb-3 transition-colors duration-500"
-                  style={{ color: 'var(--text)' }}
-                >
-                  {value.title}
-                </h3>
-
-                <p
-                  className="text-base leading-relaxed transition-colors duration-500"
-                  style={{ color: 'var(--textSecondary)' }}
-                >
-                  {value.description}
-                </p>
-              </div>
-            );
-          })}
+        <div className="grid gap-12 md:grid-cols-3">
+          {values.map((value) => (
+            <article key={value.title} className="flex flex-col gap-4 border-t pt-8" style={{ borderColor: 'var(--border)' }}>
+              <h3 className="text-2xl font-display" style={{ color: 'var(--text)' }}>
+                {value.title}
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--textSecondary)' }}>
+                {value.description}
+              </p>
+            </article>
+          ))}
         </div>
       </div>
     </section>

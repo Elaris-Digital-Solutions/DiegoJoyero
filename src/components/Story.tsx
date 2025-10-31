@@ -1,83 +1,67 @@
+import { useMemo } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+
+const storyImages: Record<'gold' | 'silver', string> = {
+  gold: 'https://images.unsplash.com/photo-1522312291041-18c175f8d0da?auto=format&fit=crop&w=1600&q=80',
+  silver: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1600&q=80',
+};
 
 export function Story() {
   const { theme } = useTheme();
 
+  const narrative = useMemo(
+    () => ({
+      title: theme === 'gold' ? 'Legado de la maison' : 'Visión contemporánea',
+      introduction:
+        theme === 'gold'
+          ? 'Fundada en Lima en 1986, la casa Diego Joyero conserva la tradición de la orfebrería peruana, trabajando el oro con paciencia, precisión y respeto por los oficios.'
+          : 'Desde nuestro atelier en Lima reinterpretamos la plata con una mirada arquitectónica, buscando líneas puras que ensalzan la luz natural del metal.',
+      mission:
+        'Crear piezas que acompañen momentos íntimos con la certeza de su origen, su nobleza y la maestría del artesano que las concibió.',
+      vision:
+        'Perpetuar una joyería sobria, creada para ser heredada, en la que cada trazo responde a un propósito y cada detalle se trabaja a mano.',
+    }),
+    [theme],
+  );
+
   return (
-    <section id="about" className="py-24 transition-colors duration-500" style={{ backgroundColor: 'var(--cardBg)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="relative h-96 md:h-full overflow-hidden rounded-2xl order-2 md:order-1">
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: theme === 'gold'
-                  ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(249, 228, 193, 0.3) 100%)'
-                  : 'linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(232, 244, 248, 0.3) 100%)',
-              }}
-            />
-            <div
-              className="absolute inset-0 blur-3xl opacity-40"
-              style={{
-                background: theme === 'gold'
-                  ? 'radial-gradient(circle at 50% 50%, #D4AF37, transparent)'
-                  : 'radial-gradient(circle at 50% 50%, #00D4FF, transparent)',
-              }}
-            />
+    <section id="about" className="py-24" style={{ backgroundColor: 'var(--cardBg)' }}>
+      <div className="max-w-6xl mx-auto px-6 grid gap-12 md:grid-cols-[1fr,1.2fr] items-start">
+        <figure className="w-full h-[420px] md:h-[520px] overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
+          <img src={storyImages[theme]} alt="Atelier Diego Joyero" className="w-full h-full object-cover" />
+        </figure>
+
+        <div className="flex flex-col gap-10">
+          <div className="space-y-3">
+            <span className="text-xs uppercase tracking-[0.5em]" style={{ color: 'var(--textSecondary)' }}>
+              Nuestra historia
+            </span>
+            <h2 className="text-4xl md:text-5xl font-display" style={{ color: 'var(--text)' }}>
+              {narrative.title}
+            </h2>
           </div>
 
-          <div className="space-y-8 order-1 md:order-2">
-            <div>
-              <span className="text-sm font-medium tracking-widest uppercase" style={{ color: 'var(--primary)' }}>
-                Nuestra Historia
-              </span>
-              <h2
-                className="text-4xl md:text-5xl font-serif tracking-wide mt-2 transition-colors duration-500"
-                style={{ color: 'var(--text)' }}
-              >
-                {theme === 'gold' ? 'Tradición Dorada' : 'Modernidad Plateada'}
-              </h2>
+          <p className="text-base leading-relaxed" style={{ color: 'var(--textSecondary)' }}>
+            {narrative.introduction}
+          </p>
+
+          <div className="grid gap-8">
+            <div className="border-l pl-6" style={{ borderColor: 'var(--border)' }}>
+              <h3 className="text-xl font-display mb-3" style={{ color: 'var(--text)' }}>
+                Misión
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--textSecondary)' }}>
+                {narrative.mission}
+              </p>
             </div>
 
-            <p
-              className="text-lg leading-relaxed transition-colors duration-500"
-              style={{ color: 'var(--textSecondary)' }}
-            >
-              {theme === 'gold'
-                ? 'Diego Joyero nació de la pasión por preservar la herencia de la orfebrería tradicional. Cada pieza de oro es un testimonio de siglos de técnica refinada, combinada con visión contemporánea.'
-                : 'Con la plata como lienzo, creamos expresiones modernas de belleza. Nuestro compromiso es diseñar joyas que reflejen la identidad única de cada persona que las porta.'}
-            </p>
-
-            <div className="space-y-6">
-              <div>
-                <h4
-                  className="font-serif text-xl mb-2 transition-colors duration-500"
-                  style={{ color: 'var(--text)' }}
-                >
-                  Nuestra Misión
-                </h4>
-                <p
-                  className="transition-colors duration-500"
-                  style={{ color: 'var(--textSecondary)' }}
-                >
-                  Crear piezas de joyería que trascienden lo material, capturando emociones y celebrando momentos significativos en la vida de nuestros clientes.
-                </p>
-              </div>
-
-              <div>
-                <h4
-                  className="font-serif text-xl mb-2 transition-colors duration-500"
-                  style={{ color: 'var(--text)' }}
-                >
-                  Nuestra Visión
-                </h4>
-                <p
-                  className="transition-colors duration-500"
-                  style={{ color: 'var(--textSecondary)' }}
-                >
-                  Ser reconocidos globalmente como la marca que redefine la joyería fina, combinando artesanía ancestral con innovación contemporánea.
-                </p>
-              </div>
+            <div className="border-l pl-6" style={{ borderColor: 'var(--border)' }}>
+              <h3 className="text-xl font-display mb-3" style={{ color: 'var(--text)' }}>
+                Visión
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--textSecondary)' }}>
+                {narrative.vision}
+              </p>
             </div>
           </div>
         </div>

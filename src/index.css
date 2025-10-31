@@ -3,10 +3,15 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
   * {
     transition-property: background-color, border-color, color, fill, stroke;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 500ms;
+    transition-duration: 400ms;
   }
 
   html {
@@ -14,11 +19,28 @@
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--background);
+    color: var(--text);
+    letter-spacing: 0.01em;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  p,
+  span {
+    font-family: var(--font-body);
   }
 }
 
@@ -32,74 +54,39 @@
     }
   }
 
-  .animate-shimmer {
-    animation: shimmer 1.5s ease-in-out;
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @keyframes glow {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-  }
-
-  .animate-glow {
-    animation: glow 2s ease-in-out infinite;
-  }
-
-  @keyframes fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-fade-up {
-    animation: fade-up 0.8s ease-out;
+  .font-body {
+    font-family: var(--font-body);
   }
 }
 
 [data-theme="gold"] {
-  --primary: #D4AF37;
-  --secondary: #F4E4C1;
-  --accent: #C9A961;
-  --background: #FFF9F0;
-  --cardBg: #FFFBF5;
-  --text: #3A3226;
-  --textSecondary: #6B5D4F;
-  --border: #E8D7BC;
-  --shadow: rgba(212, 175, 55, 0.15);
-  --glow: rgba(212, 175, 55, 0.3);
+  --primary: #c7a15b;
+  --secondary: #ede8e3;
+  --accent: #b58b45;
+  --background: #f8f4ec;
+  --cardBg: #fdfbf7;
+  --text: #111111;
+  --textSecondary: #5c5144;
+  --border: #dcd2bf;
+  --shadow: rgba(17, 17, 17, 0.05);
+  --glow: rgba(199, 161, 91, 0.2);
 }
 
 [data-theme="silver"] {
-  --primary: #C0C0C0;
-  --secondary: #E8F4F8;
-  --accent: #00D4FF;
-  --background: #F0F4F8;
-  --cardBg: #FFFFFF;
-  --text: #1A2332;
-  --textSecondary: #4A5568;
-  --border: #CBD5E0;
-  --shadow: rgba(0, 212, 255, 0.15);
-  --glow: rgba(0, 212, 255, 0.3);
+  --primary: #b7b7b7;
+  --secondary: #f2f2f2;
+  --accent: #9aa0a8;
+  --background: #ffffff;
+  --cardBg: #f7f7f7;
+  --text: #222222;
+  --textSecondary: #4c4c4c;
+  --border: #d8d8d8;
+  --shadow: rgba(34, 34, 34, 0.05);
+  --glow: rgba(183, 183, 183, 0.25);
 }

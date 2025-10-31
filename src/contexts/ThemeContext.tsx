@@ -12,31 +12,31 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const goldTheme = {
-  primary: '#D4AF37',
-  secondary: '#F4E4C1',
-  accent: '#C9A961',
-  background: '#FFF9F0',
-  cardBg: '#FFFBF5',
-  text: '#3A3226',
-  textSecondary: '#6B5D4F',
-  border: '#E8D7BC',
-  shadow: 'rgba(212, 175, 55, 0.15)',
-  gradient: 'linear-gradient(135deg, #FFF9F0 0%, #F4E4C1 100%)',
-  glow: 'rgba(212, 175, 55, 0.3)',
+  primary: '#C7A15B',
+  secondary: '#EDE8E3',
+  accent: '#B58B45',
+  background: '#F8F4EC',
+  cardBg: '#FDFBF7',
+  text: '#111111',
+  textSecondary: '#5C5144',
+  border: '#DCD2BF',
+  shadow: 'rgba(17, 17, 17, 0.05)',
+  gradient: 'none',
+  glow: 'rgba(199, 161, 91, 0.2)',
 };
 
 export const silverTheme = {
-  primary: '#C0C0C0',
-  secondary: '#E8F4F8',
-  accent: '#00D4FF',
-  background: '#F0F4F8',
-  cardBg: '#FFFFFF',
-  text: '#1A2332',
-  textSecondary: '#4A5568',
-  border: '#CBD5E0',
-  shadow: 'rgba(0, 212, 255, 0.15)',
-  gradient: 'linear-gradient(135deg, #F0F4F8 0%, #E8F4F8 100%)',
-  glow: 'rgba(0, 212, 255, 0.3)',
+  primary: '#B7B7B7',
+  secondary: '#F2F2F2',
+  accent: '#9AA0A8',
+  background: '#FFFFFF',
+  cardBg: '#F7F7F7',
+  text: '#222222',
+  textSecondary: '#4C4C4C',
+  border: '#D8D8D8',
+  shadow: 'rgba(34, 34, 34, 0.05)',
+  gradient: 'none',
+  glow: 'rgba(183, 183, 183, 0.25)',
 };
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

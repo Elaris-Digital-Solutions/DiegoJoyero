@@ -1,69 +1,226 @@
-import { Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ShoppingBag } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
-export function Header() {
+interface HeaderProps {
+  onCartToggle: () => void;
+  isCartOpen: boolean;
+}
+
+const navItems = [
+  { label: 'Colección', to: '/#collection' },
+  { label: 'Pilares', to: '/#values' },
+  { label: 'Historia', to: '/#about' },
+  { label: 'Garantía', to: '/#guarantees' },
+  { label: 'Contacto', to: '/#contact' },
+];
+
+export function Header({ onCartToggle, isCartOpen }: HeaderProps) {
   const { theme, toggleTheme, isTransitioning } = useTheme();
+  const [isCompact, setIsCompact] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const animationTimeoutRef = useRef<number>();
+  const isAnimatingRef = useRef(false);
+  const isCompactRef = useRef(false);
+
+  const currentModeLabel = useMemo(() => (theme === 'gold' ? 'Catálogo Oro' : 'Catálogo Plata'), [theme]);
+  const switchLabel = useMemo(() => (theme === 'gold' ? 'Cambiar a Plata' : 'Cambiar a Oro'), [theme]);
+
+  const startAnimation = useCallback(
+    (direction: 'compact' | 'expanded') => {
+      if (animationTimeoutRef.current) {
+        window.clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = undefined;
+      }
+
+      setIsAnimating(true);
+      isAnimatingRef.current = true;
+      setIsCompact(direction === 'compact');
+      isCompactRef.current = direction === 'compact';
+
+      animationTimeoutRef.current = window.setTimeout(() => {
+        animationTimeoutRef.current = undefined;
+        setIsAnimating(false);
+        isAnimatingRef.current = false;
+
+        if (direction === 'compact' && window.scrollY === 0) {
+          startAnimation('expanded');
+        } else if (direction === 'expanded' && window.scrollY > 0) {
+          startAnimation('compact');
+        }
+      }, 700);
+    },
+    []
+  );
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+
+      if (isAnimatingRef.current) {
+        return;
+      }
+
+      if (currentScroll > 0 && !isCompactRef.current) {
+        startAnimation('compact');
+      } else if (currentScroll <= 0 && isCompactRef.current) {
+        startAnimation('expanded');
+      }
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (animationTimeoutRef.current) {
+        window.clearTimeout(animationTimeoutRef.current);
+      }
+    };
+  }, [startAnimation]);
+
+  useEffect(() => {
+    isAnimatingRef.current = isAnimating;
+  }, [isAnimating]);
+
+  useEffect(() => {
+    isCompactRef.current = isCompact;
+  }, [isCompact]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
-      <div className="backdrop-blur-md bg-white/80 border-b border-[var(--border)] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 transition-colors duration-500" style={{ color: 'var(--primary)' }} />
-              <div>
-                <h1 className="text-2xl font-serif tracking-wider transition-colors duration-500" style={{ color: 'var(--text)' }}>
-                  Diego Joyero
-                </h1>
-                <p className="text-xs tracking-widest uppercase transition-colors duration-500" style={{ color: 'var(--textSecondary)' }}>
-                  Fine Jewelry
-                </p>
+    <header
+      className={`sticky top-0 z-50 border-b transition-all duration-700 ease-[cubic-bezier(0.4,0.0,0.2,1)] ${
+        isCompact ? 'backdrop-blur-[6px] shadow-sm' : ''
+      }`}
+      style={{ borderColor: 'var(--border)', backgroundColor: 'var(--background)' }}
+    >
+      <div
+        className={`max-w-6xl mx-auto px-6 transition-all duration-700 ease-[cubic-bezier(0.4,0.0,0.2,1)] ${
+          isCompact ? 'py-4' : 'pt-12 pb-10 md:pt-16 md:pb-14'
+        }`}
+      >
+        {!isCompact ? (
+          <div className="flex flex-col items-center gap-10">
+            <div className="flex w-full items-center justify-between text-[0.68rem] uppercase tracking-[0.4em]">
+              <span className="hidden md:block" style={{ color: 'var(--textSecondary)' }}>
+                Casa de Alta Joyería
+              </span>
+              <div className="flex items-center gap-6">
+                <button
+                  type="button"
+                  onClick={onCartToggle}
+                  className="flex items-center gap-3 border-b focus:outline-none hover:border-[var(--primary)] transition-colors duration-300"
+                  style={{
+                    color: 'var(--text)',
+                    borderColor: isCartOpen ? 'var(--primary)' : 'transparent',
+                  }}
+                  aria-label="Ver carrito"
+                  aria-expanded={isCartOpen}
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span className="text-[0.62rem] uppercase tracking-[0.35em]">Carrito</span>
+                </button>
+
+                <div className="flex flex-col items-end text-right">
+                  <span className="uppercase tracking-[0.4em] text-[0.68rem]" style={{ color: 'var(--textSecondary)' }}>
+                    {currentModeLabel}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    disabled={isTransitioning}
+                    className="uppercase tracking-[0.4em] text-[0.62rem] disabled:opacity-60"
+                    style={{ color: 'var(--primary)' }}
+                  >
+                    {switchLabel}
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-6">
-              <nav className="hidden md:flex gap-8">
-                <a href="#collection" className="text-sm tracking-wide uppercase transition-all duration-300 hover:scale-105" style={{ color: 'var(--textSecondary)' }}>
-                  Colección
-                </a>
-                <a href="#about" className="text-sm tracking-wide uppercase transition-all duration-300 hover:scale-105" style={{ color: 'var(--textSecondary)' }}>
-                  Nosotros
-                </a>
-                <a href="#contact" className="text-sm tracking-wide uppercase transition-all duration-300 hover:scale-105" style={{ color: 'var(--textSecondary)' }}>
-                  Contacto
-                </a>
-              </nav>
+            <div className="flex flex-col items-center gap-4 text-center transition-transform duration-500">
+              <Link to="/" className="block">
+                  <img
+                    src="/assets/Asset-1.svg"
+                    alt="Logo Diego Joyero"
+                    className="w-44 md:w-56 transition-transform duration-700 ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+                  />
+              </Link>
+              <p className="text-xs uppercase tracking-[0.4em]" style={{ color: 'var(--textSecondary)' }}>
+                Diego Joyero · Lima 1986
+              </p>
+            </div>
 
-              <button
-                onClick={toggleTheme}
-                disabled={isTransitioning}
-                className="relative group"
-                aria-label="Toggle theme"
-              >
-                <div className="px-6 py-3 rounded-full border-2 transition-all duration-500 hover:scale-105 disabled:opacity-50"
-                  style={{
-                    borderColor: 'var(--primary)',
-                    backgroundColor: 'var(--cardBg)',
-                  }}
+            <nav className="flex flex-wrap justify-center gap-8 text-[0.75rem] uppercase tracking-[0.35em]">
+              {navItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="pb-1 border-b border-transparent hover:border-[var(--primary)]"
+                  style={{ color: 'var(--text)' }}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full transition-all duration-500"
-                      style={{
-                        backgroundColor: theme === 'gold' ? '#D4AF37' : '#C0C0C0',
-                        boxShadow: `0 0 10px var(--glow)`
-                      }}
-                    />
-                    <span className="text-sm font-medium tracking-wider uppercase transition-colors duration-500"
-                      style={{ color: 'var(--text)' }}
-                    >
-                      {theme === 'gold' ? 'Oro' : 'Plata'}
-                    </span>
-                  </div>
-                </div>
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        ) : (
+          <div className="flex items-center gap-8">
+            <Link to="/" className="shrink-0 block transition-transform duration-700 ease-[cubic-bezier(0.4,0.0,0.2,1)]">
+              <img
+                src="/assets/Asset-1.svg"
+                alt="Logo Diego Joyero"
+                className="w-32 transition-transform duration-700 ease-[cubic-bezier(0.4,0.0,0.2,1)]"
+              />
+            </Link>
+
+            <nav className="flex-1 flex flex-wrap items-center justify-center gap-6 text-[0.68rem] uppercase tracking-[0.35em]">
+              {navItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="pb-1 border-b border-transparent hover:border-[var(--primary)] transition-colors duration-300"
+                  style={{ color: 'var(--text)' }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="flex items-center gap-6 shrink-0">
+              <button
+                type="button"
+                onClick={onCartToggle}
+                className="flex items-center gap-2 border-b focus:outline-none hover:border-[var(--primary)] transition-colors duration-300"
+                style={{
+                  color: 'var(--text)',
+                  borderColor: isCartOpen ? 'var(--primary)' : 'transparent',
+                }}
+                aria-label="Ver carrito"
+                aria-expanded={isCartOpen}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span className="text-[0.58rem] uppercase tracking-[0.35em]">Carrito</span>
               </button>
+
+              <div className="flex flex-col items-end text-right leading-none">
+                <span className="uppercase tracking-[0.35em] text-[0.6rem]" style={{ color: 'var(--textSecondary)' }}>
+                  {currentModeLabel}
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  disabled={isTransitioning}
+                  className="uppercase tracking-[0.35em] text-[0.58rem] disabled:opacity-60"
+                  style={{ color: 'var(--primary)' }}
+                >
+                  {switchLabel}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </header>
   );
