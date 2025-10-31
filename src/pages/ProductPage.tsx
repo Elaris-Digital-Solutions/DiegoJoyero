@@ -1,6 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
 import { supabase, Product } from '../lib/supabase';
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.33, 1, 0.68, 1], when: 'beforeChildren', staggerChildren: 0.18 },
+  },
+};
+
+const imageVariants = {
+  hidden: { opacity: 0, scale: 0.96 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.25, 1, 0.5, 1] } },
+};
+
+const detailsVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.33, 1, 0.68, 1] } },
+};
 
 export function ProductPage() {
   const { id } = useParams();
@@ -41,39 +61,52 @@ export function ProductPage() {
 
   if (loading) {
     return (
-      <section className="py-24">
+      <motion.section className="py-24" initial="hidden" animate="visible" variants={sectionVariants}>
         <div className="max-w-6xl mx-auto px-6 text-center">
           <p className="text-sm uppercase tracking-[0.4em]" style={{ color: 'var(--textSecondary)' }}>
             Cargando pieza
           </p>
         </div>
-      </section>
+      </motion.section>
     );
   }
 
   if (error || !product) {
     return (
-      <section className="py-24">
+      <motion.section className="py-24" initial="hidden" animate="visible" variants={sectionVariants}>
         <div className="max-w-6xl mx-auto px-6 text-center space-y-6">
           <p className="text-sm uppercase tracking-[0.4em]" style={{ color: 'var(--textSecondary)' }}>
             {error ?? 'Esta pieza no está disponible.'}
           </p>
-          <Link to="/" className="text-xs uppercase tracking-[0.45em] border-b border-transparent hover:border-[var(--primary)]" style={{ color: 'var(--primary)' }}>
+          <Link
+            to="/"
+            className="text-xs uppercase tracking-[0.45em] border-b border-transparent hover:border-[var(--primary)]"
+            style={{ color: 'var(--primary)' }}
+          >
             Volver a la colección
           </Link>
         </div>
-      </section>
+      </motion.section>
     );
   }
 
   return (
-    <section className="py-16 md:py-24">
+    <motion.section
+      className="py-16 md:py-24"
+      initial="hidden"
+      animate="visible"
+      variants={sectionVariants}
+    >
       <div className="max-w-6xl mx-auto px-6 grid gap-12 md:grid-cols-[1.1fr,1fr] items-start">
-        <figure className="w-full h-[480px] md:h-[620px] border" style={{ borderColor: 'var(--border)' }}>
+        <motion.figure
+          className="w-full h-[480px] md:h-[620px] border"
+          style={{ borderColor: 'var(--border)' }}
+          variants={imageVariants}
+        >
           <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-        </figure>
+        </motion.figure>
 
-        <div className="flex flex-col gap-10">
+        <motion.div className="flex flex-col gap-10" variants={detailsVariants}>
           <div className="space-y-4">
             <span className="text-xs uppercase tracking-[0.5em]" style={{ color: 'var(--textSecondary)' }}>
               {categoryLabel}
@@ -103,7 +136,7 @@ export function ProductPage() {
                   Inversión
                 </span>
                 <p className="text-base tracking-[0.3em] uppercase" style={{ color: 'var(--primary)' }}>
-                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(product.price)}
+                  {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(product.price)}
                 </p>
               </div>
             </div>
@@ -116,15 +149,23 @@ export function ProductPage() {
           </div>
 
           <div className="flex flex-wrap gap-6 pt-4 text-xs uppercase tracking-[0.45em]">
-            <a href="#contact" className="border-b border-transparent hover:border-[var(--primary)]" style={{ color: 'var(--primary)' }}>
+            <a
+              href="#contact"
+              className="border-b border-transparent hover:border-[var(--primary)]"
+              style={{ color: 'var(--primary)' }}
+            >
               Solicitar esta pieza
             </a>
-            <Link to="/" className="border-b border-transparent hover:border-[var(--primary)]" style={{ color: 'var(--text)' }}>
+            <Link
+              to="/"
+              className="border-b border-transparent hover:border-[var(--primary)]"
+              style={{ color: 'var(--text)' }}
+            >
               Volver a la colección
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 }

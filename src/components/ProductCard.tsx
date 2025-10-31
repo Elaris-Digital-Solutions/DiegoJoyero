@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Product } from '../lib/supabase';
+import { normalizeCategory } from '../lib/utils';
 
 interface ProductCardProps {
   product: Product;
@@ -11,11 +12,11 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'EUR',
+      currency: 'USD',
     }).format(price);
   };
 
-  const categoryLabel = product.category || (product.material === 'gold' ? 'Oro' : 'Plata');
+  const categoryLabel = normalizeCategory(product.category) || (product.material === 'gold' ? 'Oro' : 'Plata');
   const detailPath = `/producto/${product.id}`;
 
   return (
@@ -47,22 +48,31 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
           </p>
         </div>
 
-        <div className="flex items-start justify-between gap-8 border-t pt-6" style={{ borderColor: 'var(--border)' }}>
+        <div
+          className="flex flex-wrap items-end justify-between gap-6 border-t pt-6"
+          style={{ borderColor: 'var(--border)' }}
+        >
           <div className="space-y-1">
-            <span className="text-[0.65rem] uppercase tracking-[0.35em]" style={{ color: 'var(--textSecondary)' }}>
+            <span className="text-[0.62rem] uppercase tracking-[0.3em]" style={{ color: 'var(--textSecondary)' }}>
               Inversión
             </span>
-            <span className="text-base tracking-[0.3em] uppercase" style={{ color: 'var(--primary)' }}>
+            <span className="text-base tracking-[0.18em] uppercase" style={{ color: 'var(--primary)' }}>
               {formatPrice(product.price)}
             </span>
           </div>
 
           {product.stock > 0 ? (
-            <span className="text-[0.6rem] uppercase tracking-[0.4em]" style={{ color: 'var(--textSecondary)' }}>
+            <span
+              className="text-[0.58rem] uppercase tracking-[0.22em] text-right whitespace-nowrap"
+              style={{ color: 'var(--textSecondary)' }}
+            >
               {product.stock < 5 ? `Últimas ${product.stock}` : 'Disponible'}
             </span>
           ) : (
-            <span className="text-[0.6rem] uppercase tracking-[0.4em]" style={{ color: 'var(--textSecondary)' }}>
+            <span
+              className="text-[0.58rem] uppercase tracking-[0.22em] text-right"
+              style={{ color: 'var(--textSecondary)' }}
+            >
               Agotado temporalmente
             </span>
           )}

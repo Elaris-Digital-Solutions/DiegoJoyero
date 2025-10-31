@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase, type Product } from '../lib/supabase';
+import { fallbackProducts } from '../lib/fallbackProducts';
 import { Button } from './ui/button';
 
 interface ShowcaseItem {
@@ -22,7 +23,7 @@ interface ShowcaseItem {
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('es-ES', {
     style: 'currency',
-    currency: 'EUR',
+    currency: 'USD',
     minimumFractionDigits: 0,
   }).format(price);
 
@@ -87,18 +88,24 @@ export function FeaturedProducts() {
           .order('price', { ascending: false })
           .limit(4);
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
+
         if (isMounted) {
-          setProducts(data ?? []);
+          const source = data && data.length > 0 ? data : fallbackProducts[theme];
+          setProducts(source);
         }
       } catch (error) {
         console.error('Error fetching featured products:', error);
         if (isMounted) {
-          setProducts([]);
+          setProducts(fallbackProducts[theme]);
         }
       } finally {
         if (isMounted) {
           setLoading(false);
+          setCurrentIndex(0);
+          setSelectedItem(null);
         }
       }
     };
@@ -111,25 +118,56 @@ export function FeaturedProducts() {
   }, [theme]);
 
   const showcaseItems = useMemo(() => products.map(mapProductToShowcase), [products]);
+  const hasItems = showcaseItems.length > 0;
 
-  useEffect(() => {
-    setCurrentIndex(0);
-    setSelectedItem(null);
-  }, [showcaseItems.length]);
-
-  if (loading || showcaseItems.length === 0) {
-    return null;
-  }
-
-  const currentItem = showcaseItems[currentIndex];
+  const showLoadingState = loading && !hasItems;
 
   const goToPrevious = () => {
+    if (!hasItems || showcaseItems.length <= 1) return;
     setCurrentIndex((prev) => (prev - 1 + showcaseItems.length) % showcaseItems.length);
   };
 
   const goToNext = () => {
+    if (!hasItems || showcaseItems.length <= 1) return;
     setCurrentIndex((prev) => (prev + 1) % showcaseItems.length);
   };
+
+  const currentItem = hasItems ? showcaseItems[currentIndex % showcaseItems.length] : null;
+
+  if (showLoadingState) {
+    return (
+      <section id="featured" className="bg-background text-foreground">
+        <div className="mx-auto max-w-6xl px-6 py-24 md:px-12">
+          <div className="space-y-4 text-center">
+            <div className="mx-auto h-4 w-32 animate-pulse rounded-full bg-border" />
+            <div className="mx-auto h-10 w-2/3 animate-pulse rounded-full bg-border" />
+            <div className="mx-auto h-4 w-1/2 animate-pulse rounded-full bg-border" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!hasItems || !currentItem) {
+    return (
+      <section id="featured" className="bg-background text-foreground">
+        <div className="mx-auto max-w-4xl px-6 py-24 text-center md:px-12">
+          <p className="text-xs font-light uppercase tracking-[0.45em] text-muted-foreground">
+            Colección en preparación
+          </p>
+          <h2 className="mt-4 text-3xl font-light tracking-tight md:text-4xl">
+            Estamos curando una nueva selección de piezas destacadas.
+          </h2>
+          <p className="mt-6 text-sm font-light leading-relaxed text-muted-foreground md:text-base">
+            Vuelve pronto o agenda una cita privada para conocer el catálogo completo en nuestro atelier.
+          </p>
+          <Button asChild variant="outline" className="mt-8 gap-3 uppercase tracking-[0.3em]">
+            <Link to="/contacto">Coordinar visita</Link>
+          </Button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="featured" className="bg-background text-foreground">

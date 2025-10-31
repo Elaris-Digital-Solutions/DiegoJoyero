@@ -1,47 +1,90 @@
+import { motion } from 'framer-motion';
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 32 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.33, 1, 0.68, 1],
+      when: 'beforeChildren',
+      staggerChildren: 0.12,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.33, 1, 0.68, 1] },
+  },
+};
+
 export function Values() {
   const values = [
     {
-      title: 'Excelencia Artesanal',
+      title: 'Excelencia artesanal',
       description:
-        'Nuestros maestros artesanos trabajan cada engaste de forma manual, asegurando proporciones exactas y terminaciones pulidas a espejo.',
+        'Cada pieza nace de manos expertas que controlan la temperatura, la tensión y el pulido final para alcanzar un acabado impecable.',
     },
     {
-      title: 'Compromiso con la Autenticidad',
+      title: 'Diseño atemporal',
       description:
-        'Certificados de autenticidad y trazabilidad acompañan cada pieza. Solo utilizamos metales nobles y gemas provenientes de fuentes responsables.',
+        'Trazamos líneas sobrias y proporciones precisas para que la joya trascienda tendencias y acompañe generaciones.',
     },
     {
-      title: 'Diseño con Historia',
+      title: 'Responsabilidad y autenticidad',
       description:
-        'Colecciones inspiradas en los archivos de la maison, reinterpretadas con un lenguaje contemporáneo pensado para perdurar.',
+        'Trabajamos con metales y gemas de procedencia certificada, documentando cada etapa para garantizar transparencia y ética.',
+    },
+    {
+      title: 'Innovación y detalle',
+      description:
+        'Integramos modelado 3D, fotografía macro y prototipos experimentales para refinar los acabados sin perder la esencia artesanal.',
     },
   ];
 
   return (
-    <section id="values" className="py-24" style={{ backgroundColor: 'var(--background)' }}>
+    <motion.section
+      id="values"
+      className="py-24"
+      style={{ backgroundColor: 'var(--background)' }}
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+    >
       <div className="max-w-6xl mx-auto px-6">
-        <div className="text-center mb-16 space-y-3">
+        <motion.div className="text-center mb-16 space-y-3" variants={itemVariants}>
           <span className="text-xs uppercase tracking-[0.5em]" style={{ color: 'var(--textSecondary)' }}>
             Nuestros pilares
           </span>
           <h2 className="text-4xl md:text-5xl font-display" style={{ color: 'var(--text)' }}>
             Valores inquebrantables
           </h2>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-12 md:grid-cols-3">
+        <div className="grid gap-12 md:grid-cols-2 md:gap-16">
           {values.map((value) => (
-            <article key={value.title} className="flex flex-col gap-4 border-t pt-8" style={{ borderColor: 'var(--border)' }}>
+            <motion.article
+              key={value.title}
+              className="flex flex-col gap-4 border-t pt-8 md:border-t-0 md:border-l md:pl-8 md:[&:nth-child(2n+1)]:border-l-0 md:[&:nth-child(2n+1)]:pl-0"
+              style={{ borderColor: 'var(--border)' }}
+              variants={itemVariants}
+            >
               <h3 className="text-2xl font-display" style={{ color: 'var(--text)' }}>
                 {value.title}
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--textSecondary)' }}>
                 {value.description}
               </p>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

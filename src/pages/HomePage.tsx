@@ -3,7 +3,7 @@ import { FeaturedProducts } from '../components/FeaturedProducts';
 import { Values } from '../components/Values';
 import { Story } from '../components/Story';
 import { Guarantees } from '../components/Guarantees';
-import { ProductCatalog } from '../components/ProductCatalog';
+import { CollectionPreview } from '../components/CollectionPreview';
 
 export function HomePage() {
   return (
@@ -13,7 +13,7 @@ export function HomePage() {
       <Values />
       <Story />
       <Guarantees />
-      <ProductCatalog />
+      <CollectionPreview />
     </>
   );
 }

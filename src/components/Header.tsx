@@ -9,11 +9,10 @@ interface HeaderProps {
 }
 
 const navItems = [
-  { label: 'Colección', to: '/#collection' },
-  { label: 'Pilares', to: '/#values' },
-  { label: 'Historia', to: '/#about' },
-  { label: 'Garantía', to: '/#guarantees' },
-  { label: 'Contacto', to: '/#contact' },
+  { label: 'Inicio', to: '/' },
+  { label: 'Colecciones', to: '/colecciones' },
+  { label: 'Nosotros', to: '/nosotros' },
+  { label: 'Contacto', to: '/contacto' },
 ];
 
 export function Header({ onCartToggle, isCartOpen }: HeaderProps) {
@@ -148,7 +147,7 @@ export function Header({ onCartToggle, isCartOpen }: HeaderProps) {
                   />
               </Link>
               <p className="text-xs uppercase tracking-[0.4em]" style={{ color: 'var(--textSecondary)' }}>
-                Diego Joyero · Lima 1986
+                Diego Joyero · Lima 2023
               </p>
             </div>
 

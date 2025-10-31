@@ -5,6 +5,9 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
 import { ProductPage } from './pages/ProductPage';
+import { ColeccionesPage } from './pages/Colecciones';
+import { NosotrosPage } from './pages/Nosotros';
+import { ContactoPage } from './pages/Contacto';
 import { CartDrawer } from './components/CartDrawer';
 import { WhatsappButton } from './components/WhatsappButton';
 
@@ -38,6 +41,9 @@ function App() {
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/colecciones" element={<ColeccionesPage />} />
+              <Route path="/nosotros" element={<NosotrosPage />} />
+              <Route path="/contacto" element={<ContactoPage />} />
               <Route path="/producto/:id" element={<ProductPage />} />
             </Routes>
           </main>
