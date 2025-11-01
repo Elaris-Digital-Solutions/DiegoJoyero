@@ -96,16 +96,16 @@ export function Footer() {
               ))}
             </ul>
 
-            <div className="flex flex-wrap items-center gap-4 md:gap-6">
+            <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:gap-x-10 md:gap-y-4">
               {networks.map(({ name, href, icon: Icon }) => (
                 <a
                   key={name}
                   href={href}
-                  className="text-xs uppercase tracking-[0.45em] border-b border-transparent hover:border-[var(--primary)]"
+                  className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.45em] border-b border-transparent pb-1 hover:border-[var(--primary)] md:pb-0"
                   style={{ color: 'var(--primary)' }}
                   aria-label={name}
                 >
-                  <Icon className="w-4 h-4 inline-block mr-2" />
+                  <Icon className="h-4 w-4" />
                   {name}
                 </a>
               ))}

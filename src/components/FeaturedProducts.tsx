@@ -70,6 +70,21 @@ const mapProductToShowcase = (product: Product): ShowcaseItem => ({
   product,
 });
 
+const curateFeaturedProducts = (entries: Product[]): Product[] => {
+  if (!entries || entries.length === 0) {
+    return [];
+  }
+
+  const prioritized = [...entries].sort((a, b) => {
+    if (a.featured === b.featured) {
+      return b.price - a.price;
+    }
+    return a.featured ? -1 : 1;
+  });
+
+  return prioritized.slice(0, 3);
+};
+
 export function FeaturedProducts() {
   const { theme } = useTheme();
   const { addItem } = useCart();
@@ -85,10 +100,12 @@ export function FeaturedProducts() {
       setLoading(true);
 
       if (!supabase) {
-        setProducts(fallbackProducts[theme]);
-        setLoading(false);
-        setCurrentIndex(0);
-        setSelectedItem(null);
+        if (isMounted) {
+          setProducts(curateFeaturedProducts(fallbackProducts[theme]));
+          setLoading(false);
+          setCurrentIndex(0);
+          setSelectedItem(null);
+        }
         return;
       }
 
@@ -107,12 +124,12 @@ export function FeaturedProducts() {
 
         if (isMounted) {
           const source = data && data.length > 0 ? data : fallbackProducts[theme];
-          setProducts(source);
+          setProducts(curateFeaturedProducts(source));
         }
       } catch (error) {
         console.error('Error fetching featured products:', error);
         if (isMounted) {
-          setProducts(fallbackProducts[theme]);
+          setProducts(curateFeaturedProducts(fallbackProducts[theme]));
         }
       } finally {
         if (isMounted) {
