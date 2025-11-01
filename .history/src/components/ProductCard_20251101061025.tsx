@@ -12,7 +12,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) {
-  const { theme } = useTheme();
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -51,15 +50,8 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
         
         {/* Featured Badge */}
         {product.featured && (
-          <div className={`absolute top-4 left-4 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium uppercase tracking-[0.2em] border ${
-            theme === 'gold' 
-              ? 'bg-amber-500/90 text-white border-amber-400/50' 
-              : 'bg-slate-500/90 text-white border-slate-400/50'
-          }`}>
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-current" />
-              Destacado
-            </div>
+          <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium uppercase tracking-[0.2em]">
+            Destacado
           </div>
         )}
 
@@ -86,27 +78,19 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
           
           <Link
             to={detailPath}
-            className={`flex items-center justify-center backdrop-blur-sm py-3 px-4 rounded-xl transition-all ${
-              theme === 'gold' 
-                ? 'bg-amber-500/95 hover:bg-amber-500 text-white' 
-                : 'bg-slate-600/95 hover:bg-slate-600 text-white'
-            }`}
+            className="flex items-center justify-center bg-primary/95 backdrop-blur-sm text-primary-foreground py-3 px-4 rounded-xl transition-all hover:bg-primary"
           >
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
         {/* Category and Material Info */}
-        <div className="absolute bottom-4 left-4 right-16 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] font-medium">
-            <span className={`backdrop-blur-sm px-2 py-1 rounded border ${
-              theme === 'gold' 
-                ? 'bg-amber-900/60 border-amber-400/30' 
-                : 'bg-slate-900/60 border-slate-400/30'
-            }`}>
+        <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] font-medium">
+            <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded">
               {categoryLabel}
             </span>
-            <span className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded border border-white/20">
+            <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded">
               {product.material === 'gold' ? 'Oro 18k' : 'Plata 925'}
             </span>
           </div>
@@ -141,15 +125,10 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
               {isAvailable
                 ? product.stock < 5
-                  ? 'Pocas unidades'
+                  ? `${product.stock} disponibles`
                   : 'Disponible'
                 : 'Agotado'}
             </p>
-            {isAvailable && product.stock < 5 && (
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                Solo {product.stock} en stock
-              </p>
-            )}
           </div>
         </div>
       </div>

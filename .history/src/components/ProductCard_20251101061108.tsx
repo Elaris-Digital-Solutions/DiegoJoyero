@@ -97,16 +97,12 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
         </div>
 
         {/* Category and Material Info */}
-        <div className="absolute bottom-4 left-4 right-16 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] font-medium">
-            <span className={`backdrop-blur-sm px-2 py-1 rounded border ${
-              theme === 'gold' 
-                ? 'bg-amber-900/60 border-amber-400/30' 
-                : 'bg-slate-900/60 border-slate-400/30'
-            }`}>
+        <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] font-medium">
+            <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded">
               {categoryLabel}
             </span>
-            <span className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded border border-white/20">
+            <span className="bg-black/40 backdrop-blur-sm px-2 py-1 rounded">
               {product.material === 'gold' ? 'Oro 18k' : 'Plata 925'}
             </span>
           </div>

@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, Crown, Diamond, Heart, Palette, Sparkles, Star } from 'lucide-react';
+import { ArrowUpRight, Crown, Diamond, Heart, Palette, Sparkles, Star, Zap } from 'lucide-react';
 
 import { useTheme } from '../contexts/ThemeContext';
+import { FeaturedProducts } from '../components/FeaturedProducts';
 import { ProductCatalog } from '../components/ProductCatalog';
 import { Button } from '../components/ui/button';
 
