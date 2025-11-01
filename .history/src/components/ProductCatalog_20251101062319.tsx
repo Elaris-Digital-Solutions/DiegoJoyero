@@ -333,7 +333,7 @@ export function ProductCatalog() {
                     transition={{ duration: 0.55, delay: index * 0.05 }}
                     layout
                   >
-                    <ProductCard product={product} variant="collectionsMinimal" />
+                    <ProductCard product={product} />
                   </motion.div>
                 ))}
               </motion.div>

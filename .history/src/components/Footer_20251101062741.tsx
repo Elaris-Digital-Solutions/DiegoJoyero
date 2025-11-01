@@ -42,23 +42,23 @@ export function Footer() {
       className="border-t"
       style={{ borderColor: 'var(--border)', backgroundColor: theme === 'gold' ? '#f4efe4' : '#f8f8f8' }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid gap-16 lg:grid-cols-[1.2fr,1fr] items-start">
-          <div className="space-y-12">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="grid gap-12 lg:grid-cols-[1.2fr,1fr] items-start">
+          <div className="space-y-8">
             {/* Logo y tagline */}
-            <div className="space-y-6">
-              <img src="/assets/Asset-1.svg" alt="Diego Joyero" className="w-32" />
+            <div className="space-y-4">
+              <img src="/assets/Asset-1.svg" alt="Diego Joyero" className="w-30" />
               <p className="text-[0.65rem] uppercase tracking-[0.45em]" style={{ color: 'var(--textSecondary)' }}>
                 Maison de joaillerie
               </p>
             </div>
 
             {/* Descripción principal */}
-            <div className="space-y-8 max-w-lg">
-              <h3 className="text-2xl font-display leading-relaxed" style={{ color: 'var(--text)' }}>
+            <div className="space-y-6 max-w-lg">
+              <h3 className="text-xl font-display leading-relaxed" style={{ color: 'var(--text)' }}>
                 Joyas hechas a tu historia
               </h3>
-              <p className="text-base leading-relaxed" style={{ color: 'var(--textSecondary)' }}>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--textSecondary)' }}>
                 Diseñamos piezas únicas a partir de sesiones privadas donde interpretamos tus ideas, memorias o piedras
                 heredadas. Cada joya se modela a medida, con bocetos, prototipos y un proceso artesanal que garantiza un
                 resultado irrepetible.
@@ -74,31 +74,31 @@ export function Footer() {
           </div>
 
           {/* Información de contacto */}
-          <div className="space-y-10">
+          <div className="space-y-8">
             <div className="space-y-2">
-              <h3 className="text-2xl font-display" style={{ color: 'var(--text)' }}>
+              <h3 className="text-xl font-display" style={{ color: 'var(--text)' }}>
                 Contacto directo
               </h3>
               <div className="w-12 h-0.5" style={{ backgroundColor: 'var(--primary)' }}></div>
             </div>
             
-            <ul className="space-y-6 text-sm" style={{ color: 'var(--textSecondary)' }}>
+            <ul className="space-y-4 text-sm" style={{ color: 'var(--textSecondary)' }}>
               {contactDetails.map(({ label, value, href, icon: Icon }) => (
-                <li key={`${label}-${value}`} className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style={{ backgroundColor: 'var(--primary)/10' }}>
-                    <Icon className="h-4 w-4" style={{ color: 'var(--primary)' }} />
+                <li key={`${label}-${value}`} className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: 'var(--primary)/10' }}>
+                    <Icon className="h-3.5 w-3.5" style={{ color: 'var(--primary)' }} />
                   </div>
                   <div className="flex flex-col text-left space-y-1">
                     <span className="text-[0.6rem] uppercase tracking-[0.4em] text-muted-foreground font-medium">{label}</span>
                     {href ? (
                       <a
                         href={href}
-                        className="text-base tracking-[0.02em] transition-colors hover:text-[var(--primary)] leading-relaxed"
+                        className="text-sm tracking-[0.02em] transition-colors hover:text-[var(--primary)] leading-relaxed"
                       >
                         {value}
                       </a>
                     ) : (
-                      <span className="text-base tracking-[0.02em] leading-relaxed">{value}</span>
+                      <span className="text-sm tracking-[0.02em] leading-relaxed">{value}</span>
                     )}
                   </div>
                 </li>
@@ -106,20 +106,20 @@ export function Footer() {
             </ul>
 
             {/* Redes sociales */}
-            <div className="space-y-6 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-              <div className="flex flex-wrap gap-6">
+            <div className="space-y-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex flex-wrap gap-4">
                 {networks.map(({ name, href, icon: Icon }) => (
                   <a
                     key={name}
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 text-sm uppercase tracking-[0.3em] transition-all hover:scale-105 group"
+                    className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.3em] transition-all hover:scale-105 group"
                     style={{ color: 'var(--primary)' }}
                     aria-label={name}
                   >
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center border-2 group-hover:bg-[var(--primary)] group-hover:text-white transition-all" style={{ borderColor: 'var(--primary)' }}>
-                      <Icon className="h-4 w-4" />
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 group-hover:bg-[var(--primary)] group-hover:text-white transition-all" style={{ borderColor: 'var(--primary)' }}>
+                      <Icon className="h-3.5 w-3.5" />
                     </div>
                     {name}
                   </a>
@@ -130,9 +130,9 @@ export function Footer() {
         </div>
 
         {/* Footer bottom */}
-        <div className="border-t pt-8 mt-10 flex flex-col md:flex-row items-center justify-between gap-6 text-sm" style={{ borderColor: 'var(--border)', color: 'var(--textSecondary)' }}>
+        <div className="border-t pt-6 mt-12 flex flex-col md:flex-row items-center justify-between gap-4 text-sm" style={{ borderColor: 'var(--border)', color: 'var(--textSecondary)' }}>
           <span className="uppercase tracking-[0.3em]">© 2024 Diego Joyero</span>
-          <div className="flex gap-8">
+          <div className="flex gap-6">
             <a href="#" className="uppercase tracking-[0.2em] hover:text-[var(--text)] transition-colors">Privacidad</a>
             <a href="#" className="uppercase tracking-[0.2em] hover:text-[var(--text)] transition-colors">Términos</a>
             <a href="#" className="uppercase tracking-[0.2em] hover:text-[var(--text)] transition-colors">Garantías</a>

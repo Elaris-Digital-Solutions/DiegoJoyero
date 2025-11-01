@@ -1,6 +1,6 @@
 import { type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShoppingBag, Star } from 'lucide-react';
+import { ArrowRight, ShoppingBag } from 'lucide-react';
 import { Product } from '../lib/supabase';
 import { normalizeCategory } from '../lib/utils';
 import { useCart } from '../contexts/CartContext';
@@ -13,9 +13,6 @@ interface ProductCardProps {
 
 export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) {
   const { theme } = useTheme();
-  const { addItem } = useCart();
-  const isAvailable = product.stock > 0;
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -25,6 +22,8 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
 
   const categoryLabel = normalizeCategory(product.category) || (product.material === 'gold' ? 'Oro' : 'Plata');
   const detailPath = `/producto/${product.id}`;
+  const { addItem } = useCart();
+  const isAvailable = product.stock > 0;
 
   const handleAddToCart = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -34,42 +33,6 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
     }
     addItem(product);
   };
-
-  // Collections Minimal Variant - Solo imagen + botón "Agregar al carrito"
-  if (variant === 'collectionsMinimal') {
-    return (
-      <article className="group relative overflow-hidden rounded-2xl bg-white border border-border hover:border-primary/20 transition-all duration-300">
-        <div className="relative aspect-[3/4] overflow-hidden">
-          <img
-            src={product.image_url}
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          
-          {/* Overlay con degradado y CTA */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          <div className="absolute inset-x-4 bottom-4">
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={!isAvailable}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-medium transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary ${
-                isAvailable
-                  ? 'bg-primary text-white hover:bg-primary/90 shadow-lg hover:shadow-xl'
-                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-              }`}
-              aria-label={isAvailable ? `Agregar ${product.name} al carrito` : `${product.name} agotado`}
-            >
-              <ShoppingBag className="w-4 h-4" />
-              {isAvailable ? 'Agregar al carrito' : 'Agotado'}
-            </button>
-          </div>
-        </div>
-      </article>
-    );
-  }
 
   return (
     <article className="group relative bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/20 hover:shadow-xl transition-all duration-500">

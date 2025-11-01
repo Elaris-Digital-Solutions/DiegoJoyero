@@ -130,7 +130,7 @@ export function Footer() {
         </div>
 
         {/* Footer bottom */}
-        <div className="border-t pt-8 mt-10 flex flex-col md:flex-row items-center justify-between gap-6 text-sm" style={{ borderColor: 'var(--border)', color: 'var(--textSecondary)' }}>
+        <div className="border-t pt-8 mt-16 flex flex-col md:flex-row items-center justify-between gap-6 text-sm" style={{ borderColor: 'var(--border)', color: 'var(--textSecondary)' }}>
           <span className="uppercase tracking-[0.3em]">© 2024 Diego Joyero</span>
           <div className="flex gap-8">
             <a href="#" className="uppercase tracking-[0.2em] hover:text-[var(--text)] transition-colors">Privacidad</a>

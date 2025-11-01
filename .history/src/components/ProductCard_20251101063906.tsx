@@ -1,6 +1,6 @@
 import { type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShoppingBag, Star } from 'lucide-react';
+import { ArrowRight, ShoppingBag, ShoppingCart, Star } from 'lucide-react';
 import { Product } from '../lib/supabase';
 import { normalizeCategory } from '../lib/utils';
 import { useCart } from '../contexts/CartContext';
@@ -8,10 +8,10 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface ProductCardProps {
   product: Product;
-  variant?: 'featured' | 'catalog' | 'collectionsMinimal';
+  variant?: 'default' | 'featured' | 'collectionsMinimal';
 }
 
-export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) {
+export function ProductCard({ product, variant = 'default' }: ProductCardProps) {
   const { theme } = useTheme();
   const { addItem } = useCart();
   const isAvailable = product.stock > 0;
@@ -38,31 +38,29 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
   // Collections Minimal Variant - Solo imagen + botón "Agregar al carrito"
   if (variant === 'collectionsMinimal') {
     return (
-      <article className="group relative overflow-hidden rounded-2xl bg-white border border-border hover:border-primary/20 transition-all duration-300">
+      <article className="group relative overflow-hidden rounded-2xl">
         <div className="relative aspect-[3/4] overflow-hidden">
           <img
             src={product.image_url}
             alt={product.name}
             loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          
-          {/* Overlay con degradado y CTA */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          <div className="absolute inset-x-4 bottom-4">
+
+          {/* Overlay inferior con degradado sutil y CTA */}
+          <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-16 bg-gradient-to-t from-black/70 via-black/40 to-transparent">
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={!isAvailable}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-medium transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary ${
+              className={`w-full flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black/30 transition-colors ${
                 isAvailable
-                  ? 'bg-primary text-white hover:bg-primary/90 shadow-lg hover:shadow-xl'
-                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  ? 'bg-primary text-white hover:bg-primary/90'
+                  : 'bg-muted/40 text-muted-foreground cursor-not-allowed'
               }`}
               aria-label={isAvailable ? `Agregar ${product.name} al carrito` : `${product.name} agotado`}
             >
-              <ShoppingBag className="w-4 h-4" />
+              {isAvailable && <ShoppingCart className="h-4 w-4" />}
               {isAvailable ? 'Agregar al carrito' : 'Agotado'}
             </button>
           </div>
