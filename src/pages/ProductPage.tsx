@@ -107,6 +107,11 @@ export function ProductPage() {
     return product.category || (product.material === 'gold' ? 'Oro' : 'Plata');
   }, [product]);
 
+  const formattedPrice = useMemo(() => {
+    if (!product) return '';
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(product.price);
+  }, [product]);
+
   if (loading) {
     return (
       <motion.section className="py-24" initial="hidden" animate="visible" variants={sectionVariants}>
@@ -139,10 +144,6 @@ export function ProductPage() {
   }
 
   const isAvailable = (product?.stock ?? 0) > 0;
-  const formattedPrice = useMemo(() => {
-    if (!product) return '';
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(product.price);
-  }, [product]);
 
   const handleAddToCart = () => {
     if (!product || !isAvailable) return;
