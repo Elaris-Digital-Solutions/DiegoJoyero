@@ -330,7 +330,7 @@ export function ColeccionesPage() {
                   <ArrowUpRight className="h-5 w-5" />
                 </a>
               </Button>
-              <Button asChild variant="outline" size="lg" className="gap-2 border-white/30 text-white hover:bg-white/10">
+              <Button asChild size="lg" className="gap-2 bg-white text-black hover:bg-white/90">
                 <a href="tel:+51999999999">
                   Llamar Ahora
                 </a>
