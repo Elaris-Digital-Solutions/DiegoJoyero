@@ -93,6 +93,18 @@ export function FeaturedProducts() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedItem, setSelectedItem] = useState<ShowcaseItem | null>(null);
 
+  // Prevent background scrolling when modal is open and allow internal scroll in overlay
+  useEffect(() => {
+    if (selectedItem) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original || '';
+      };
+    }
+    return undefined;
+  }, [selectedItem]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -334,10 +346,11 @@ export function FeaturedProducts() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md"
+            className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md overflow-auto"
             onClick={() => setSelectedItem(null)}
           >
-            <div className="min-h-screen px-6 py-12 md:px-12 md:py-20">
+            {/* Make overlay scrollable and keep content confined so scroll happens inside the overlay */}
+            <div className="min-h-[100vh] px-6 py-12 md:px-12 md:py-20">
               <Button
                 type="button"
                 onClick={() => setSelectedItem(null)}

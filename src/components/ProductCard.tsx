@@ -86,16 +86,32 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
         {/* Overlay Gradients */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
-        {/* Featured Badge */}
+        {/* Featured Badge + Tags debajo */}
         {product.featured && (
-          <div className={`absolute top-4 left-4 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium uppercase tracking-[0.2em] border ${
-            theme === 'gold' 
-              ? 'bg-amber-500/90 text-white border-amber-400/50' 
-              : 'bg-slate-500/90 text-white border-slate-400/50'
-          }`}>
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-current" />
-              Destacado
+          <div className="absolute top-4 left-4 z-30 flex flex-col items-start">
+            <div className={`backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium uppercase tracking-[0.2em] border ${
+              theme === 'gold'
+                ? 'bg-amber-500/90 text-white border-amber-400/50'
+                : 'bg-slate-500/90 text-white border-slate-400/50'
+            }`}>
+              <div className="flex items-center gap-1">
+                <Star className="h-3 w-3 fill-current" />
+                Destacado
+              </div>
+            </div>
+
+            {/* Tags stacked below the badge */}
+            <div className="mt-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <span className={`backdrop-blur-sm px-2 py-1 rounded border text-xs uppercase tracking-[0.2em] font-medium ${
+                theme === 'gold'
+                  ? 'bg-amber-900/60 border-amber-400/30 text-white'
+                  : 'bg-slate-900/60 border-slate-400/30 text-white'
+              }`}>
+                {categoryLabel}
+              </span>
+              <span className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded border border-white/20 text-xs uppercase tracking-[0.2em] font-medium text-white">
+                {product.material === 'gold' ? 'Oro 18k' : 'Plata 925'}
+              </span>
             </div>
           </div>
         )}
@@ -133,21 +149,8 @@ export function ProductCard({ product, variant = 'catalog' }: ProductCardProps) 
           </Link>
         </div>
 
-        {/* Category and Material Info */}
-        <div className="absolute bottom-4 left-4 right-16 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] font-medium">
-            <span className={`backdrop-blur-sm px-2 py-1 rounded border ${
-              theme === 'gold' 
-                ? 'bg-amber-900/60 border-amber-400/30' 
-                : 'bg-slate-900/60 border-slate-400/30'
-            }`}>
-              {categoryLabel}
-            </span>
-            <span className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded border border-white/20">
-              {product.material === 'gold' ? 'Oro 18k' : 'Plata 925'}
-            </span>
-          </div>
-        </div>
+        {/* Category and Material Info for non-featured items remain hidden here (removed duplication)
+            Tags for featured items are rendered under the 'Destacado' badge above. */}
       </div>
 
       {/* Product Info */}
