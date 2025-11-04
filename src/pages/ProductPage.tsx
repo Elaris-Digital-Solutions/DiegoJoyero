@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
-import { supabase, Product } from '../lib/supabase';
-import { fallbackProducts } from '../lib/fallbackProducts';
+import { supabase, type Product } from '../lib/supabase';
 import { useCart } from '../contexts/CartContext';
 
 const sectionVariants = {
@@ -31,17 +30,6 @@ export function ProductPage() {
   const [error, setError] = useState<string | null>(null);
   const { addItem } = useCart();
 
-  const findFallbackProduct = (productId: string | undefined) => {
-    if (!productId) return null;
-    for (const collection of Object.values(fallbackProducts)) {
-      const candidate = collection.find((item) => item.id === productId);
-      if (candidate) {
-        return candidate;
-      }
-    }
-    return null;
-  };
-
   useEffect(() => {
     if (!id) return;
 
@@ -50,13 +38,8 @@ export function ProductPage() {
       setError(null);
 
       if (!supabase) {
-        const fallbackProduct = findFallbackProduct(id);
-        if (fallbackProduct) {
-          setProduct(fallbackProduct);
-        } else {
-          setProduct(null);
-          setError('No se pudo obtener la información de la pieza.');
-        }
+        setProduct(null);
+        setError('Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
         setLoading(false);
         return;
       }
@@ -72,29 +55,13 @@ export function ProductPage() {
       }
 
       if (fetchError || !data) {
-        const fallbackProduct = findFallbackProduct(id);
-        if (fallbackProduct) {
-          setProduct(fallbackProduct);
-          setError(null);
-        } else {
-          setProduct(null);
-          setError('No se pudo obtener la información de la pieza.');
-        }
+        setProduct(null);
+        setError('No se pudo obtener la información de la pieza desde Supabase.');
         setLoading(false);
         return;
       }
 
-      const fallbackProduct = findFallbackProduct(id);
-      const resolvedProduct = fallbackProduct
-        ? {
-            ...fallbackProduct,
-            ...data,
-            description: data.description || fallbackProduct.description,
-            image_url: data.image_url || fallbackProduct.image_url,
-          }
-        : data;
-
-      setProduct(resolvedProduct);
+      setProduct(data);
       setError(null);
       setLoading(false);
     };

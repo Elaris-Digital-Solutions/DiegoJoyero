@@ -6,7 +6,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const hasSupabaseConfig = Boolean(supabaseUrl) && Boolean(supabaseAnonKey);
 
 if (!hasSupabaseConfig && import.meta.env.DEV) {
-  console.warn('Supabase no está configurado. Se utilizarán los datos locales.');
+  console.warn('Supabase no está configurado. Configura VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY para cargar el catálogo.');
 }
 
 export const supabase = hasSupabaseConfig ? createClient(supabaseUrl, supabaseAnonKey) : null;

@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, ShoppingBag, X } from 'lucide-react';
 
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase, type Product } from '../lib/supabase';
-import { fallbackProducts } from '../lib/fallbackProducts';
 import { Button } from './ui/button';
 import { useCart } from '../contexts/CartContext';
 
@@ -92,6 +91,7 @@ export function FeaturedProducts() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedItem, setSelectedItem] = useState<ShowcaseItem | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Prevent background scrolling when modal is open and allow internal scroll in overlay
   useEffect(() => {
@@ -113,7 +113,8 @@ export function FeaturedProducts() {
 
       if (!supabase) {
         if (isMounted) {
-          setProducts(curateFeaturedProducts(fallbackProducts[theme]));
+          setProducts([]);
+          setError('Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
           setLoading(false);
           setCurrentIndex(0);
           setSelectedItem(null);
@@ -135,13 +136,18 @@ export function FeaturedProducts() {
         }
 
         if (isMounted) {
-          const source = data && data.length > 0 ? data : fallbackProducts[theme];
-          setProducts(curateFeaturedProducts(source));
+          setProducts(curateFeaturedProducts(data ?? []));
+          if (!data || data.length === 0) {
+            setError('No hay productos destacados en Supabase.');
+          } else {
+            setError(null);
+          }
         }
       } catch (error) {
         console.error('Error fetching featured products:', error);
         if (isMounted) {
-          setProducts(curateFeaturedProducts(fallbackProducts[theme]));
+          setProducts([]);
+          setError('No se pudo cargar la selección destacada desde Supabase.');
         }
       } finally {
         if (isMounted) {
@@ -190,18 +196,20 @@ export function FeaturedProducts() {
     );
   }
 
-  if (!hasItems || !currentItem) {
+  if ((!hasItems || !currentItem) && !loading) {
     return (
       <section id="featured" className="bg-background text-foreground">
         <div className="mx-auto max-w-4xl px-6 py-24 text-center md:px-12">
           <p className="text-xs font-light uppercase tracking-[0.45em] text-muted-foreground">
-            Colección en preparación
+            {error ?? 'Colección en preparación'}
           </p>
           <h2 className="mt-4 text-3xl font-light tracking-tight md:text-4xl">
-            Estamos curando una nueva selección de piezas destacadas.
+            {error ? 'Revisa la conexión con Supabase' : 'Estamos curando una nueva selección de piezas destacadas.'}
           </h2>
           <p className="mt-6 text-sm font-light leading-relaxed text-muted-foreground md:text-base">
-            Vuelve pronto o agenda una cita privada para conocer el catálogo completo en nuestro atelier.
+            {error
+              ? 'No se pudo mostrar la curaduría destacada. Verifica las credenciales y los registros en la tabla products.'
+              : 'Vuelve pronto o agenda una cita privada para conocer el catálogo completo en nuestro atelier.'}
           </p>
           <Button asChild variant="outline" className="mt-8 gap-3 uppercase tracking-[0.3em]">
             <Link to="/contacto">Coordinar visita</Link>

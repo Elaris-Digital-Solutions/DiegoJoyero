@@ -4,14 +4,8 @@ import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { useTheme } from '../contexts/ThemeContext';
-import { fallbackProducts } from '../lib/fallbackProducts';
 import { supabase, type Product } from '../lib/supabase';
 import { Button } from './ui/button';
-
-type PreviewState = {
-  products: Product[];
-  isFallback: boolean;
-};
 
 const heroVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -23,12 +17,11 @@ const gridVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-const LOADING_STATE: PreviewState = { products: [], isFallback: false };
-
 export function CollectionPreview() {
   const { theme } = useTheme();
-  const [{ products, isFallback }, setPreview] = useState<PreviewState>(LOADING_STATE);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const priceFormatter = useMemo(
     () =>
       new Intl.NumberFormat('es-ES', {
@@ -43,19 +36,12 @@ export function CollectionPreview() {
 
     const load = async () => {
       setIsLoading(true);
-
-      const buildFallback = () => {
-        const fallback = [...fallbackProducts[theme]].sort((a, b) => {
-          if (a.featured === b.featured) {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          }
-          return a.featured ? -1 : 1;
-        });
-        return fallback.slice(0, 3);
-      };
+      setError(null);
 
       if (!supabase) {
-        setPreview({ products: buildFallback(), isFallback: true });
+        if (!isMounted) return;
+        setProducts([]);
+        setError('Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
         setIsLoading(false);
         return;
       }
@@ -72,15 +58,16 @@ export function CollectionPreview() {
         if (!isMounted) return;
         if (error) throw error;
 
-        if (data && data.length > 0) {
-          setPreview({ products: data.slice(0, 3), isFallback: false });
-        } else {
-          setPreview({ products: buildFallback(), isFallback: true });
+        const items = data?.slice(0, 3) ?? [];
+        setProducts(items);
+        if (items.length === 0) {
+          setError('No hay piezas recientes en Supabase para mostrar en la previsualización.');
         }
       } catch (error) {
         console.error('Error loading collection preview:', error);
         if (!isMounted) return;
-        setPreview({ products: buildFallback(), isFallback: true });
+        setProducts([]);
+        setError('No se pudo cargar la previsualización desde Supabase.');
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -133,9 +120,9 @@ export function CollectionPreview() {
           </p>
         </motion.div>
 
-        {isFallback && (
+        {error && !isLoading && (
           <p className="text-center text-[0.7rem] uppercase tracking-[0.35em] text-muted-foreground">
-            Mostrando una curaduría de referencia mientras sincronizamos el catálogo.
+            {error}
           </p>
         )}
 
@@ -143,7 +130,7 @@ export function CollectionPreview() {
           <div className="flex items-center justify-center py-16">
             <Loader2 className="h-10 w-10 animate-spin" style={{ color: 'var(--primary)' }} />
           </div>
-        ) : hasProducts ? (
+  ) : hasProducts ? (
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -220,7 +207,7 @@ export function CollectionPreview() {
         ) : (
           <div className="text-center py-20">
             <p className="text-sm uppercase tracking-[0.4em]" style={{ color: 'var(--textSecondary)' }}>
-              Próximamente nuevas piezas en esta colección.
+              {error ? 'Revisa la conexión con Supabase.' : 'Próximamente nuevas piezas en esta colección.'}
             </p>
           </div>
         )}

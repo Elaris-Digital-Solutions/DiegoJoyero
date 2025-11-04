@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { ArrowDownWideNarrow, ArrowUpWideNarrow, Clock3, Grid3X3, List, Loader2, Search, Sparkles, Star, X } from 'lucide-react';
 
 import { useTheme } from '../contexts/ThemeContext';
-import { fallbackProducts } from '../lib/fallbackProducts';
 import { supabase, type Product } from '../lib/supabase';
 import { normalizeCategory } from '../lib/utils';
 import { ProductCard } from './ProductCard';
@@ -81,18 +80,19 @@ export function ProductCatalog() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortOption, setSortOption] = useState<SortOption>('featured');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isUsingFallback, setIsUsingFallback] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadProducts = async () => {
       setLoading(true);
-      setIsUsingFallback(false);
+      setError(null);
 
       if (!supabase) {
-        setProducts(fallbackProducts[theme]);
-        setIsUsingFallback(true);
+        if (!isMounted) return;
+        setProducts([]);
+        setError('Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
         setLoading(false);
         return;
       }
@@ -108,17 +108,15 @@ export function ProductCatalog() {
         if (!isMounted) return;
         if (error) throw error;
 
-        if (data && data.length > 0) {
-          setProducts(data);
-        } else {
-          setProducts(fallbackProducts[theme]);
-          setIsUsingFallback(true);
+        setProducts(data ?? []);
+        if (!data || data.length === 0) {
+          setError('No hay productos disponibles. Crea piezas en Supabase para mostrarlas aquí.');
         }
       } catch (error) {
         console.error('Error fetching products:', error);
         if (!isMounted) return;
-        setProducts(fallbackProducts[theme]);
-        setIsUsingFallback(true);
+        setProducts([]);
+        setError('No se pudo obtener el catálogo desde Supabase.');
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -291,11 +289,9 @@ export function ProductCatalog() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="space-y-8"
         >
-          {isUsingFallback && (
+          {error && !loading && (
             <div className="text-center p-6 bg-card/50 rounded-xl border border-border">
-              <p className="text-sm text-muted-foreground">
-                Mostrando productos de referencia mientras sincronizamos el catálogo completo
-              </p>
+              <p className="text-sm text-muted-foreground">{error}</p>
             </div>
           )}
 
