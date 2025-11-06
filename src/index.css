@@ -74,6 +74,10 @@
   }
 }
 
+.navbar {
+  transition: all 0.8s ease-in-out;
+}
+
 @layer utilities {
   @keyframes shimmer {
     0% {
