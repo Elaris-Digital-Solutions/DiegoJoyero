@@ -59,10 +59,13 @@ export function Values() {
     >
       <div className="max-w-6xl mx-auto px-6">
         <motion.div className="text-center mb-16 space-y-3" variants={itemVariants}>
-          <span className="text-xs uppercase tracking-[0.5em]" style={{ color: 'var(--textSecondary)' }}>
+          <span className="text-xs uppercase tracking-[0.32em] md:tracking-[0.5em]" style={{ color: 'var(--textSecondary)' }}>
             Nuestros pilares
           </span>
-          <h2 className="text-4xl md:text-5xl font-display" style={{ color: 'var(--text)' }}>
+          <h2
+            className="text-3xl md:text-5xl font-display tracking-[0.12em] md:tracking-[0.18em]"
+            style={{ color: 'var(--text)' }}
+          >
             Valores inquebrantables
           </h2>
         </motion.div>

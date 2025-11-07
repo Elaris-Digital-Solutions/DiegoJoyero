@@ -219,6 +219,10 @@ export function FeaturedProducts() {
     );
   }
 
+  if (!currentItem) {
+    return null;
+  }
+
   return (
     <section id="featured" className="bg-background text-foreground">
       <div className="mx-auto max-w-6xl px-6 py-24 md:px-12">
@@ -238,6 +242,42 @@ export function FeaturedProducts() {
             Curaduría de piezas maestras trabajadas en series limitadas. Cada engaste celebra la esencia del
             {` ${theme === 'gold' ? 'oro' : 'plata'} Diego Joyero.`}
           </p>
+
+          <div className="mt-10 flex items-center justify-center gap-8">
+            <Button
+              type="button"
+              onClick={goToPrevious}
+              variant="ghost"
+              size="icon"
+              className="h-12 w-12 rounded-full border border-border transition-all duration-300 hover:bg-primary hover:text-primary-foreground"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+
+            <div className="flex gap-3">
+              {showcaseItems.map((item, itemIndex) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setCurrentIndex(itemIndex)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    itemIndex === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-border hover:bg-primary/60'
+                  }`}
+                  aria-label={`Ver ${item.title}`}
+                />
+              ))}
+            </div>
+
+            <Button
+              type="button"
+              onClick={goToNext}
+              variant="ghost"
+              size="icon"
+              className="h-12 w-12 rounded-full border border-border transition-all duration-300 hover:bg-primary hover:text-primary-foreground"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
         </motion.div>
 
         <div className="grid items-center gap-12 md:grid-cols-2 md:gap-20">
@@ -309,42 +349,6 @@ export function FeaturedProducts() {
               </Button>
             </div>
           </motion.div>
-        </div>
-
-        <div className="mt-16 flex items-center justify-center gap-8">
-          <Button
-            type="button"
-            onClick={goToPrevious}
-            variant="ghost"
-            size="icon"
-            className="h-12 w-12 rounded-full border border-border transition-all duration-300 hover:bg-primary hover:text-primary-foreground"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-
-          <div className="flex gap-3">
-            {showcaseItems.map((item, itemIndex) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setCurrentIndex(itemIndex)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  itemIndex === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-border hover:bg-primary/60'
-                }`}
-                aria-label={`Ver ${item.title}`}
-              />
-            ))}
-          </div>
-
-          <Button
-            type="button"
-            onClick={goToNext}
-            variant="ghost"
-            size="icon"
-            className="h-12 w-12 rounded-full border border-border transition-all duration-300 hover:bg-primary hover:text-primary-foreground"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 

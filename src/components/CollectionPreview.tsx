@@ -220,7 +220,10 @@ export function CollectionPreview() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="flex justify-center"
         >
-          <Button asChild className="gap-3 uppercase tracking-[0.35em]">
+          <Button
+            asChild
+            className="gap-3 px-6 py-4 text-[0.65rem] uppercase tracking-[0.22em] md:text-sm md:tracking-[0.32em]"
+          >
             <a href="/colecciones" className="flex items-center gap-3">
               Explorar colección completa
               <ArrowUpRight className="h-4 w-4" />
