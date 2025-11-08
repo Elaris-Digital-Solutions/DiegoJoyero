@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CartProvider } from './contexts/CartContext';
 import { Header } from './components/Header';
@@ -13,6 +13,7 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { CartDrawer } from './components/CartDrawer';
 import { WhatsappButton } from './components/WhatsappButton';
+import { DashboardView } from './pages/admin/views/DashboardView';
 
 function ScrollManager() {
   const { pathname, hash } = useLocation();
@@ -38,29 +39,38 @@ function App() {
       <CartProvider>
         <BrowserRouter>
           <ScrollManager />
-          <div
-            className="min-h-screen flex flex-col transition-colors duration-500"
-            style={{ backgroundColor: 'var(--background)' }}
-          >
-            <Header />
-            <main className="flex-1">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/colecciones" element={<ColeccionesPage />} />
-                <Route path="/nosotros" element={<NosotrosPage />} />
-                <Route path="/contacto" element={<ContactoPage />} />
-                <Route path="/producto/:id" element={<ProductPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/order-success" element={<OrderSuccessPage />} />
-              </Routes>
-            </main>
-            <Footer />
-            <WhatsappButton />
-            <CartDrawer />
-          </div>
+          <Routes>
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/colecciones" element={<ColeccionesPage />} />
+              <Route path="/nosotros" element={<NosotrosPage />} />
+              <Route path="/contacto" element={<ContactoPage />} />
+              <Route path="/producto/:id" element={<ProductPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/order-success" element={<OrderSuccessPage />} />
+            </Route>
+            <Route path="/admin/*" element={<DashboardView />} />
+          </Routes>
         </BrowserRouter>
       </CartProvider>
     </ThemeProvider>
+  );
+}
+
+function PublicLayout() {
+  return (
+    <div
+      className="min-h-screen flex flex-col transition-colors duration-500"
+      style={{ backgroundColor: 'var(--background)' }}
+    >
+      <Header />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
+      <WhatsappButton />
+      <CartDrawer />
+    </div>
   );
 }
 
