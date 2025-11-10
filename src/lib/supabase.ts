@@ -21,6 +21,25 @@ export type Product = {
   image_url: string;
   stock: number;
   featured: boolean;
+  status: 'active' | 'inactive';
   created_at: string;
   updated_at: string;
+};
+
+export type ProductInsert = {
+  name: string;
+  description: string;
+  price: number;
+  material: 'gold' | 'silver';
+  category: string;
+  image_url: string;
+  stock: number;
+  featured?: boolean;
+  status?: 'active' | 'inactive';
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ProductUpdate = Partial<ProductInsert> & {
+  id: string;
 };

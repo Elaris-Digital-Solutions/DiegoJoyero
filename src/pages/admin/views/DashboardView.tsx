@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AlertTriangle, Boxes, CheckCircle2, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
@@ -9,9 +9,11 @@ import { QuickActions } from '../components/QuickActions';
 import { InventorySnapshot } from '../components/InventorySnapshot';
 import type { InventorySnapshotProps } from '../components/InventorySnapshot';
 import { ProductTable } from '../components/ProductTable';
-import type { ProductRecord } from '../components/ProductTable';
+import type { ProductInput, ProductRecord } from '../components/ProductTable';
 import { ActivityFeed } from '../components/ActivityFeed';
 import type { ActivityItem, ActivityAction } from '../components/ActivityFeed';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { supabase, type Product } from '../../../lib/supabase';
 
 type SectionKey = 'resumen' | 'catalogo' | 'pedidos' | 'reportes' | 'ajustes';
 
@@ -83,89 +85,109 @@ const formatRelativeTime = (isoDate: string) => {
   return diffMonths <= 1 ? 'Hace 1 mes' : `Hace ${diffMonths} meses`;
 };
 
-const initialProducts: ProductRecord[] = [
-  {
-    id: createId(),
-    name: 'Anillo Petra Oro 18k',
-    description: 'Oro sólido de 18 quilates con incrustaciones en forma de pétalo.',
-    price: 1280,
-    stock: 12,
-    category: 'Anillos',
-    status: 'active',
-    imageUrl: '/assets/collections/anillo-oro.jpg',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-  {
-    id: createId(),
-    name: 'Sortija Aura Topacio',
-    description: 'Topacio azul cielo con engaste francés sobre aro de oro.',
-    price: 980,
-    stock: 2,
-    category: 'Anillos',
-    status: 'active',
-    imageUrl: '/assets/collections/anillo-topacio.jpg',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-  {
-    id: createId(),
-    name: 'Aretes Celeste Perla',
-    description: 'Perlas cultivadas con baño de rodio. Ideal para novias.',
-    price: 620,
-    stock: 0,
-    category: 'Aros',
-    status: 'inactive',
-    imageUrl: '/assets/collections/aretes-perla.jpg',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
-  },
-  {
-    id: createId(),
-    name: 'Pulsera Lienzo Plata',
-    description: 'Plata 950 con textura martillada y cierre magnético.',
-    price: 540,
-    stock: 7,
-    category: 'Pulseras',
-    status: 'active',
-    imageUrl: '/assets/collections/pulsera-plata.jpg',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-];
-
-const initialActivities: ActivityItem[] = [
-  {
-    id: createId(),
-    action: 'create',
-    title: 'Colección bodas publicada',
-    description: 'Se agregaron 5 piezas de la línea Bodas 2025.',
-    timestamp: formatRelativeTime(new Date(Date.now() - 1000 * 60 * 20).toISOString()),
-  },
-  {
-    id: createId(),
-    action: 'update',
-    title: 'Precio actualizado',
-    description: 'Anillo Petra Oro 18k ahora cuesta S/ 1,280.',
-    timestamp: formatRelativeTime(new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()),
-  },
-  {
-    id: createId(),
-    action: 'delete',
-    title: 'Set Primavera retirado',
-    description: 'El set Primavera ha sido dado de baja temporalmente.',
-    timestamp: formatRelativeTime(new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString()),
-  },
-];
 
 export function DashboardView() {
   const location = useLocation();
   const section = resolveSection(location.pathname);
-  const [products, setProducts] = useState<ProductRecord[]>(initialProducts);
-  const [activities, setActivities] = useState<ActivityItem[]>(initialActivities);
+  const { theme } = useTheme();
+  const [products, setProducts] = useState<ProductRecord[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [hasInitializedActivities, setHasInitializedActivities] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
+
+  const mapFromSupabase = useCallback(
+    (product: Product): ProductRecord => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: Number(product.price ?? 0),
+      stock: Number(product.stock ?? 0),
+      category: product.category ?? 'Sin categoría',
+      material: product.material === 'silver' ? 'silver' : 'gold',
+      status: (product.status ?? 'active') as ProductRecord['status'],
+      featured: Boolean(product.featured),
+      imageUrl: product.image_url ?? '',
+      createdAt: product.created_at ?? new Date().toISOString(),
+      updatedAt: product.updated_at ?? product.created_at ?? new Date().toISOString(),
+    }),
+    []
+  );
+
+  const buildInitialActivities = useCallback((records: ProductRecord[]): ActivityItem[] => {
+    return records.slice(0, 6).map((item) => ({
+      id: createId(),
+      action: 'create',
+      title: `${item.name} registrado`,
+      description: `Ingresó a la categoría ${item.category}.`,
+      timestamp: formatRelativeTime(item.createdAt),
+    }));
+  }, []);
+
+  const fetchProducts = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!supabase) {
+        setError('Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
+        setLoading(false);
+        return false;
+      }
+
+      if (!silent) {
+        setLoading(true);
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('material', theme)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        const records = (data ?? []).map(mapFromSupabase);
+        setProducts(records);
+
+        if (!hasInitializedActivities) {
+          setActivities(buildInitialActivities(records));
+          setHasInitializedActivities(true);
+        }
+
+        setError(null);
+        return true;
+      } catch (fetchError) {
+        console.error('Error fetching products', fetchError);
+        setProducts([]);
+        setError('No se pudo cargar el catálogo desde Supabase.');
+        return false;
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
+      }
+    },
+    [buildInitialActivities, hasInitializedActivities, mapFromSupabase, theme]
+  );
+
+  useEffect(() => {
+    void fetchProducts();
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    setActivities([]);
+    setHasInitializedActivities(false);
+  }, [theme]);
+
+  const sortByCreatedAtDesc = useCallback((records: ProductRecord[]) => {
+    return [...records].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, []);
 
   const metrics = useMemo(() => {
     const total = products.length;
@@ -234,48 +256,157 @@ export function DashboardView() {
   ];
 
   const handleAddActivity = (action: ActivityAction, title: string, description: string) => {
-    setActivities((previous) => [
-      {
-        id: createId(),
-        action,
-        title,
-        description,
-        timestamp: formatRelativeTime(new Date().toISOString()),
-      },
-      ...previous,
-    ]);
+    setActivities((previous) => {
+      const next: ActivityItem[] = [
+        {
+          id: createId(),
+          action,
+          title,
+          description,
+          timestamp: formatRelativeTime(new Date().toISOString()),
+        },
+        ...previous,
+      ];
+      return next.slice(0, 25);
+    });
   };
 
-  const handleCreateProduct = (product: ProductRecord) => {
-    setProducts((previous) => [product, ...previous]);
-    handleAddActivity('create', 'Nuevo producto publicado', `${product.name} está disponible en el catálogo.`);
+  const handleCreateProduct = async (payload: ProductInput) => {
+    if (!supabase) {
+      throw new Error('Supabase no está configurado.');
+    }
+
+    const nowIso = new Date().toISOString();
+    const insertPayload = {
+      name: payload.name,
+      description: payload.description,
+      price: payload.price,
+      stock: payload.stock,
+      category: payload.category,
+      material: payload.material,
+      image_url: payload.imageUrl,
+      featured: payload.featured,
+      status: payload.status,
+      created_at: nowIso,
+      updated_at: nowIso,
+    };
+
+    const { data, error } = await supabase
+      .from('products')
+      .insert(insertPayload)
+      .select()
+      .single<Product>();
+
+    if (error || !data) {
+      throw error ?? new Error('No se pudo crear el producto.');
+    }
+
+    const record = mapFromSupabase(data);
+    if (record.material === theme) {
+      setProducts((previous) => sortByCreatedAtDesc([record, ...previous]));
+    }
+    handleAddActivity('create', 'Nuevo producto publicado', `${record.name} está disponible en el catálogo.`);
+    setError(null);
+    await fetchProducts({ silent: true });
   };
 
-  const handleUpdateProduct = (updatedProduct: ProductRecord) => {
-    setProducts((previous) =>
-      previous.map((product) => (product.id === updatedProduct.id ? { ...updatedProduct } : product))
-    );
-    handleAddActivity('update', 'Ficha de producto actualizada', `${updatedProduct.name} fue editado desde el panel.`);
+  const handleUpdateProduct = async (updatedProduct: ProductRecord) => {
+    if (!supabase) {
+      throw new Error('Supabase no está configurado.');
+    }
+
+    const { id, ...rest } = updatedProduct;
+    const updatePayload = {
+      name: rest.name,
+      description: rest.description,
+      price: rest.price,
+      stock: rest.stock,
+      category: rest.category,
+      material: rest.material,
+      image_url: rest.imageUrl,
+      featured: rest.featured,
+      status: rest.status,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('products')
+      .update(updatePayload)
+      .eq('id', id)
+      .select()
+      .single<Product>();
+
+    if (error || !data) {
+      throw error ?? new Error('No se pudo actualizar el producto.');
+    }
+
+    const record = mapFromSupabase(data);
+    setProducts((previous) => {
+      const withoutCurrent = previous.filter((product) => product.id !== id);
+      if (record.material !== theme) {
+        return withoutCurrent;
+      }
+      return sortByCreatedAtDesc([record, ...withoutCurrent]);
+    });
+    handleAddActivity('update', 'Ficha de producto actualizada', `${record.name} fue editado desde el panel.`);
+    setError(null);
+    await fetchProducts({ silent: true });
   };
 
-  const handleDeleteProduct = (productId: string) => {
+  const handleDeleteProduct = async (productId: string) => {
+    if (!supabase) {
+      throw new Error('Supabase no está configurado.');
+    }
+
     const removedProduct = products.find((product) => product.id === productId);
+    const { error } = await supabase.from('products').delete().eq('id', productId);
+
+    if (error) {
+      throw error;
+    }
+
     setProducts((previous) => previous.filter((product) => product.id !== productId));
     if (removedProduct) {
       handleAddActivity('delete', 'Producto eliminado', `${removedProduct.name} se ocultó del catálogo.`);
     }
+    setError(null);
+    await fetchProducts({ silent: true });
   };
 
   const handleImportProducts = () => {
+    if (isImporting) return;
+    if (!supabase) {
+      setError('Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
+      return;
+    }
     importInputRef.current?.click();
   };
 
-  const parseCsv = (content: string) => {
+  const parseCsv = (content: string): ProductInput[] => {
     const normalize = (value: string) =>
       value
         .normalize('NFD')
         .replace(/[\u0000-\u001F]/g, '')
         .replace(/[\u0300-\u036f]/g, '');
+
+    const toMaterial = (raw: string): ProductInput['material'] => {
+      const normalized = normalize(raw).toLowerCase();
+      if (!normalized) return theme;
+      if (normalized.includes('plata') || normalized.includes('silver')) return 'silver';
+      if (normalized.includes('oro') || normalized.includes('gold')) return 'gold';
+      return theme;
+    };
+
+    const toStatus = (raw: string): ProductInput['status'] => {
+      const normalized = normalize(raw).toLowerCase();
+      if (normalized === 'inactivo' || normalized === 'inactive') return 'inactive';
+      return 'active';
+    };
+
+    const toFeatured = (raw: string): boolean => {
+      const normalized = normalize(raw).toLowerCase();
+      return normalized === 'si' || normalized === 'sí' || normalized === 'true' || normalized === '1';
+    };
 
     const lines = content
       .split(/\r?\n/)
@@ -295,35 +426,87 @@ export function DashboardView() {
     const categoryIndex = headers.findIndex((header) => header === 'categoria' || header === 'category');
     const statusIndex = headers.findIndex((header) => header === 'estado' || header === 'status');
     const imageIndex = headers.findIndex((header) => header === 'imagen' || header === 'image' || header === 'imageurl');
+    const materialIndex = headers.findIndex((header) => header === 'material');
+    const featuredIndex = headers.findIndex((header) => header === 'destacado' || header === 'featured');
 
-    const newProducts: ProductRecord[] = [];
+    const entries: ProductInput[] = [];
 
     lines.slice(1).forEach((line) => {
       const values = line.split(/[,;\t]/).map((value) => value.trim());
       const name = values[nameIndex];
       if (!name) return;
 
-      const nowIso = new Date().toISOString();
-      const price = priceIndex >= 0 ? Number(values[priceIndex].replace(/[^0-9.,]/g, '').replace(',', '.')) : 0;
+      const priceRaw = priceIndex >= 0 ? values[priceIndex] : '0';
+      const price = Number(priceRaw.replace(/[^0-9.,]/g, '').replace(',', '.'));
       const stock = stockIndex >= 0 ? Number(values[stockIndex]) : 0;
-      const statusRaw = statusIndex >= 0 ? normalize(values[statusIndex]).toLowerCase() : 'activo';
-      const status = statusRaw === 'inactivo' || statusRaw === 'inactive' ? 'inactive' : 'active';
+      const statusRaw = statusIndex >= 0 ? values[statusIndex] : 'active';
+  const materialRaw = materialIndex >= 0 ? values[materialIndex] : theme;
+      const featuredRaw = featuredIndex >= 0 ? values[featuredIndex] : 'false';
 
-      newProducts.push({
-        id: createId(),
+      entries.push({
         name,
         description: descriptionIndex >= 0 ? values[descriptionIndex] : '',
         price: Number.isFinite(price) ? price : 0,
         stock: Number.isFinite(stock) ? stock : 0,
         category: categoryIndex >= 0 ? values[categoryIndex] || 'Sin categoría' : 'Sin categoría',
-        status,
+        status: toStatus(statusRaw),
         imageUrl: imageIndex >= 0 ? values[imageIndex] : '',
-        createdAt: nowIso,
-        updatedAt: nowIso,
+        material: toMaterial(materialRaw),
+        featured: toFeatured(featuredRaw),
       });
     });
 
-    return newProducts;
+    return entries;
+  };
+
+  const importProducts = async (entries: ProductInput[]) => {
+    if (!supabase) {
+      setError('Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
+      return;
+    }
+
+    if (entries.length === 0) {
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const payload = entries.map((entry) => ({
+        name: entry.name,
+        description: entry.description,
+        price: entry.price,
+        stock: entry.stock,
+        category: entry.category,
+        material: entry.material,
+        image_url: entry.imageUrl,
+        featured: entry.featured,
+        status: entry.status,
+      }));
+
+      const { data, error } = await supabase.from('products').insert(payload).select();
+
+      if (error) {
+        throw error;
+      }
+
+      const inserted = (data ?? []).map(mapFromSupabase);
+      const relevantInserted = inserted.filter((product) => product.material === theme);
+      if (relevantInserted.length > 0) {
+        setProducts((previous) => {
+          const existingIds = new Set(relevantInserted.map((product) => product.id));
+          const remaining = previous.filter((product) => !existingIds.has(product.id));
+          return sortByCreatedAtDesc([...relevantInserted, ...remaining]);
+        });
+      }
+      handleAddActivity('import', 'Productos importados', `${inserted.length} producto(s) se añadieron desde Excel/CSV.`);
+      setError(null);
+    } catch (importError) {
+      console.error('Error importing products', importError);
+      setError('La importación desde Excel/CSV no se pudo completar. Revisa el formato del archivo.');
+      throw importError;
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -331,26 +514,39 @@ export function DashboardView() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const text = String(reader.result ?? '');
       const importedProducts = parseCsv(text);
       if (importedProducts.length === 0) {
         handleAddActivity('import', 'Importación sin cambios', 'No se detectaron filas válidas en el archivo.');
       } else {
-        setProducts((previous) => [...importedProducts, ...previous]);
-        handleAddActivity(
-          'import',
-          'Productos importados',
-          `${importedProducts.length} producto(s) se añadieron desde Excel/CSV.`
-        );
+        try {
+          await importProducts(importedProducts);
+        } catch {
+          handleAddActivity('import', 'Importación con errores', 'Hubo problemas al procesar el archivo.');
+        }
       }
     };
     reader.readAsText(file);
     event.target.value = '';
   };
 
-  const handleSyncInventory = () => {
-    handleAddActivity('update', 'Sincronización completada', 'El inventario se actualizó con los datos de la tienda.');
+  const handleSyncInventory = async () => {
+    if (isSyncing || loading) return;
+    if (!supabase) {
+      setError('Supabase no está configurado. Define VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.');
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const success = await fetchProducts();
+      if (success) {
+        handleAddActivity('update', 'Sincronización completada', 'El inventario se actualizó con los datos de la tienda.');
+      }
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   let actionSlot: ReactNode | undefined;
@@ -367,13 +563,21 @@ export function DashboardView() {
     onSearchChange = setSearchTerm;
     content = (
       <div className="space-y-6">
+        {error ? (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        ) : null}
         <QuickActions
           onCreateProduct={() => setIsCreateModalOpen(true)}
           onImportProducts={handleImportProducts}
-          onSyncInventory={handleSyncInventory}
+          onSyncInventory={() => void handleSyncInventory()}
+          isImporting={isImporting}
+          isSyncing={isSyncing}
         />
         <ProductTable
           products={products}
+          isLoading={loading}
           onCreateProduct={handleCreateProduct}
           onUpdateProduct={handleUpdateProduct}
           onDeleteProduct={handleDeleteProduct}
@@ -414,6 +618,11 @@ export function DashboardView() {
     );
     content = (
       <>
+        {error ? (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        ) : null}
         <QuickStats items={quickStats} />
         <div className="grid gap-6 xl:grid-cols-2">
           <InventorySnapshot {...metrics.inventorySnapshot} />

@@ -1,34 +1,35 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Camera, Plus, Save, Trash2 } from 'lucide-react';
+import { Camera, Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { cn } from '../../../lib/utils';
 
-const createId = () =>
-  typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : `product-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
 export type ProductStatus = 'active' | 'inactive';
 
-export interface ProductRecord {
-  id: string;
+export interface ProductInput {
   name: string;
   description: string;
   price: number;
   stock: number;
   category: string;
+  material: 'gold' | 'silver';
   status: ProductStatus;
+  featured: boolean;
   imageUrl: string;
+}
+
+export interface ProductRecord extends ProductInput {
+  id: string;
   createdAt: string;
   updatedAt?: string;
 }
 
 interface ProductTableProps {
   products: ProductRecord[];
-  onCreateProduct: (product: ProductRecord) => void;
-  onUpdateProduct: (product: ProductRecord) => void;
-  onDeleteProduct: (productId: string) => void;
+  isLoading: boolean;
+  onCreateProduct: (product: ProductInput) => Promise<void>;
+  onUpdateProduct: (product: ProductRecord) => Promise<void>;
+  onDeleteProduct: (productId: string) => Promise<void>;
   searchTerm: string;
   onSearch: (term: string) => void;
   isCreateModalOpen: boolean;
@@ -38,6 +39,7 @@ interface ProductTableProps {
 
 export function ProductTable({
   products,
+  isLoading,
   onCreateProduct,
   onUpdateProduct,
   onDeleteProduct,
@@ -48,6 +50,9 @@ export function ProductTable({
   onCloseCreateModal,
 }: ProductTableProps) {
   const [drafts, setDrafts] = useState<Record<string, ProductRecord>>({});
+  const [savingIds, setSavingIds] = useState<Record<string, boolean>>({});
+  const [deletingIds, setDeletingIds] = useState<Record<string, boolean>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     setDrafts((previous) => {
@@ -88,29 +93,57 @@ export function ProductTable({
     });
   };
 
-  const handleSaveRow = (id: string) => {
+  const handleSaveRow = async (id: string) => {
     const draft = drafts[id];
     const original = products.find((product) => product.id === id);
     if (!draft || !original) return;
-
-    onUpdateProduct({ ...draft, updatedAt: new Date().toISOString() });
-    setDrafts((previous) => {
-      const next = { ...previous };
-      delete next[id];
-      return next;
-    });
+    setSubmitError(null);
+    setSavingIds((previous) => ({ ...previous, [id]: true }));
+    try {
+      await onUpdateProduct({ ...draft, updatedAt: new Date().toISOString() });
+      setDrafts((previous) => {
+        const next = { ...previous };
+        delete next[id];
+        return next;
+      });
+    } catch (error) {
+      console.error('Error updating product', error);
+      setSubmitError('No se pudieron guardar los cambios. Intenta nuevamente.');
+    } finally {
+      setSavingIds((previous) => {
+        const next = { ...previous };
+        delete next[id];
+        return next;
+      });
+    }
   };
 
-  const handleDeleteRow = (id: string) => {
-    onDeleteProduct(id);
-    setDrafts((previous) => {
-      const next = { ...previous };
-      delete next[id];
-      return next;
-    });
+  const handleDeleteRow = async (id: string) => {
+    setSubmitError(null);
+    setDeletingIds((previous) => ({ ...previous, [id]: true }));
+    try {
+      await onDeleteProduct(id);
+      setDrafts((previous) => {
+        const next = { ...previous };
+        delete next[id];
+        return next;
+      });
+    } catch (error) {
+      console.error('Error deleting product', error);
+      setSubmitError('No se pudo eliminar el producto. Intenta nuevamente.');
+    } finally {
+      setDeletingIds((previous) => {
+        const next = { ...previous };
+        delete next[id];
+        return next;
+      });
+    }
   };
 
   const hasDraftChanges = (id: string) => Boolean(drafts[id]);
+  const isSaving = (id: string) => Boolean(savingIds[id]);
+  const isDeleting = (id: string) => Boolean(deletingIds[id]);
+  const resultsLabel = isLoading ? 'Cargando…' : `${filteredProducts.length} resultados`;
 
   return (
     <Card className="min-w-0 border border-border/70 bg-card/80 shadow-sm">
@@ -141,14 +174,12 @@ export function ProductTable({
               className="w-full rounded-lg border border-border/70 bg-card px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
             />
           </div>
-          <span className="text-xs uppercase tracking-[0.32em] text-muted-foreground">
-            {filteredProducts.length} resultados
-          </span>
+          <span className="text-xs uppercase tracking-[0.32em] text-muted-foreground">{resultsLabel}</span>
         </div>
 
         <div className="hidden md:block">
           <div className="overflow-x-auto rounded-xl border border-border/70 bg-background">
-            <table className="w-full min-w-[860px] text-left text-sm">
+            <table className="w-full min-w-[1024px] text-left text-sm">
               <thead className="bg-muted/60 text-[0.7rem] uppercase tracking-[0.32em] text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3">Imagen</th>
@@ -156,14 +187,23 @@ export function ProductTable({
                   <th className="px-4 py-3">Precio</th>
                   <th className="px-4 py-3">Stock</th>
                   <th className="px-4 py-3">Categoría</th>
+                  <th className="px-4 py-3">Material</th>
+                  <th className="px-4 py-3">Destacado</th>
                   <th className="px-4 py-3">Estado</th>
                   <th className="px-4 py-3 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-              {filteredProducts.length === 0 ? (
+              {isLoading && filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  <td colSpan={9} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                    Cargando catálogo…
+                  </td>
+                </tr>
+              ) : null}
+              {!isLoading && filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="px-4 py-6 text-center text-sm text-muted-foreground">
                     No encontramos productos con ese criterio de búsqueda.
                   </td>
                 </tr>
@@ -241,6 +281,30 @@ export function ProductTable({
                     </td>
                     <td className="px-4 py-4 align-top">
                       <select
+                        value={current.material}
+                        onChange={(event) =>
+                          handleDraftChange(product.id, 'material', event.target.value as ProductRecord['material'])
+                        }
+                        className="w-32 rounded-md border border-border/60 bg-background px-3 py-2 text-xs uppercase tracking-[0.28em] focus:outline-none focus:ring-2 focus:ring-ring/40"
+                      >
+                        <option value="gold">Oro</option>
+                        <option value="silver">Plata</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-4 align-top">
+                      <select
+                        value={current.featured ? 'true' : 'false'}
+                        onChange={(event) =>
+                          handleDraftChange(product.id, 'featured', event.target.value === 'true')
+                        }
+                        className="w-28 rounded-md border border-border/60 bg-background px-3 py-2 text-xs uppercase tracking-[0.28em] focus:outline-none focus:ring-2 focus:ring-ring/40"
+                      >
+                        <option value="true">Destacado</option>
+                        <option value="false">Regular</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-4 align-top">
+                      <select
                         value={current.status}
                         onChange={(event) =>
                           handleDraftChange(product.id, 'status', event.target.value as ProductStatus)
@@ -261,21 +325,30 @@ export function ProductTable({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="gap-1"
-                          disabled={!hasDraftChanges(product.id)}
-                          onClick={() => handleSaveRow(product.id)}
+                          className="gap-2"
+                          disabled={!hasDraftChanges(product.id) || isSaving(product.id)}
+                          onClick={() => void handleSaveRow(product.id)}
                         >
-                          <Save className="h-3.5 w-3.5" />
-                          Guardar
+                          {isSaving(product.id) ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Save className="h-3.5 w-3.5" />
+                          )}
+                          {isSaving(product.id) ? 'Guardando' : 'Guardar'}
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
                           className="h-9 w-9"
-                          onClick={() => handleDeleteRow(product.id)}
+                          onClick={() => void handleDeleteRow(product.id)}
                           aria-label="Eliminar producto"
+                          disabled={isSaving(product.id) || isDeleting(product.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {isDeleting(product.id) ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </td>
@@ -288,7 +361,12 @@ export function ProductTable({
         </div>
 
         <div className="space-y-4 md:hidden">
-          {filteredProducts.length === 0 ? (
+          {isLoading && filteredProducts.length === 0 ? (
+            <div className="rounded-xl border border-border/70 bg-card p-6 text-center text-sm text-muted-foreground">
+              Cargando catálogo…
+            </div>
+          ) : null}
+          {!isLoading && filteredProducts.length === 0 ? (
             <div className="rounded-xl border border-border/70 bg-card p-6 text-center text-sm text-muted-foreground">
               No encontramos productos con ese criterio de búsqueda.
             </div>
@@ -363,6 +441,30 @@ export function ProductTable({
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-xs uppercase tracking-[0.28em] text-muted-foreground">
+                    Material
+                    <select
+                      value={current.material}
+                      onChange={(event) =>
+                        handleDraftChange(product.id, 'material', event.target.value as ProductRecord['material'])
+                      }
+                      className="rounded-md border border-border/60 bg-background px-3 py-2 text-xs uppercase tracking-[0.28em] focus:outline-none focus:ring-2 focus:ring-ring/40"
+                    >
+                      <option value="gold">Oro</option>
+                      <option value="silver">Plata</option>
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1 text-xs uppercase tracking-[0.28em] text-muted-foreground">
+                    Destacado
+                    <select
+                      value={current.featured ? 'true' : 'false'}
+                      onChange={(event) => handleDraftChange(product.id, 'featured', event.target.value === 'true')}
+                      className="rounded-md border border-border/60 bg-background px-3 py-2 text-xs uppercase tracking-[0.28em] focus:outline-none focus:ring-2 focus:ring-ring/40"
+                    >
+                      <option value="true">Sí</option>
+                      <option value="false">No</option>
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1 text-xs uppercase tracking-[0.28em] text-muted-foreground">
                     Estado
                     <select
                       value={current.status}
@@ -380,24 +482,35 @@ export function ProductTable({
                   size="sm"
                   className="w-full gap-2"
                   variant="outline"
-                  disabled={!hasDraftChanges(product.id)}
-                  onClick={() => handleSaveRow(product.id)}
+                  disabled={!hasDraftChanges(product.id) || isSaving(product.id)}
+                  onClick={() => void handleSaveRow(product.id)}
                 >
-                  <Save className="h-4 w-4" />
-                  Guardar cambios
+                  {isSaving(product.id) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {isSaving(product.id) ? 'Guardando' : 'Guardar cambios'}
                 </Button>
               </div>
             );
           })}
         </div>
+        {submitError ? (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {submitError}
+          </div>
+        ) : null}
       </CardContent>
 
       <AddProductModal
         open={isCreateModalOpen}
         onClose={onCloseCreateModal}
-        onSubmit={(product) => {
-          onCreateProduct(product);
-          onCloseCreateModal();
+        onSubmit={async (product) => {
+          setSubmitError(null);
+          try {
+            await onCreateProduct(product);
+            onCloseCreateModal();
+          } catch (error) {
+            console.error('Error creating product', error);
+            setSubmitError('No se pudo crear el producto. Revisa los datos e inténtalo nuevamente.');
+          }
         }}
       />
     </Card>
@@ -407,11 +520,11 @@ export function ProductTable({
 interface AddProductModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (product: ProductRecord) => void;
+  onSubmit: (product: ProductInput) => Promise<void>;
 }
 
 function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
-  const [form, setForm] = useState<Omit<ProductRecord, 'id'>>({
+  const [form, setForm] = useState<ProductInput>({
     name: '',
     description: '',
     price: 0,
@@ -419,9 +532,11 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
     category: '',
     status: 'active',
     imageUrl: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: undefined,
+    material: 'gold',
+    featured: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -433,9 +548,11 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
         category: '',
         status: 'active',
         imageUrl: '',
-        createdAt: new Date().toISOString(),
-        updatedAt: undefined,
+        material: 'gold',
+        featured: false,
       });
+      setErrorMessage(null);
+      setIsSubmitting(false);
     }
   }, [open]);
 
@@ -448,19 +565,25 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
     }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedName = form.name.trim();
     if (!trimmedName) return;
-
-    onSubmit({
-      id: createId(),
-      ...form,
-      name: trimmedName,
-      category: form.category.trim() || 'Sin categoría',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        ...form,
+        name: trimmedName,
+        category: form.category.trim() || 'Sin categoría',
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error submitting product modal', error);
+      setErrorMessage('No se pudo guardar el producto. Verifica los campos e inténtalo nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -546,6 +669,28 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
               </select>
             </label>
             <label className="flex flex-col gap-2 text-xs uppercase tracking-[0.28em] text-muted-foreground">
+              Material
+              <select
+                value={form.material}
+                onChange={(event) => handleChange('material', event.target.value as ProductInput['material'])}
+                className="rounded-md border border-border/70 bg-background px-3 py-2 text-xs uppercase tracking-[0.28em] focus:outline-none focus:ring-2 focus:ring-ring/40"
+              >
+                <option value="gold">Oro</option>
+                <option value="silver">Plata</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-2 text-xs uppercase tracking-[0.28em] text-muted-foreground">
+              Destacado en la web
+              <select
+                value={form.featured ? 'true' : 'false'}
+                onChange={(event) => handleChange('featured', event.target.value === 'true')}
+                className="rounded-md border border-border/70 bg-background px-3 py-2 text-xs uppercase tracking-[0.28em] focus:outline-none focus:ring-2 focus:ring-ring/40"
+              >
+                <option value="false">No</option>
+                <option value="true">Sí</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-2 text-xs uppercase tracking-[0.28em] text-muted-foreground">
               URL de la imagen principal
               <input
                 type="url"
@@ -557,12 +702,19 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
             </label>
           </div>
 
+          {errorMessage ? (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              {errorMessage}
+            </div>
+          ) : null}
+
           <footer className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={onClose} className="sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" className="sm:w-auto">
-              Guardar producto
+            <Button type="submit" className="sm:w-auto" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {isSubmitting ? 'Guardando…' : 'Guardar producto'}
             </Button>
           </footer>
         </form>
