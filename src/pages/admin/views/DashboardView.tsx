@@ -65,6 +65,32 @@ const createId = () =>
     ? crypto.randomUUID()
     : `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
+const slugify = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
+
+const generateProductId = (
+  name: string,
+  material: ProductInput['material'],
+  existingIds: Set<string>
+) => {
+  const sanitizedName = slugify(name) || 'pieza';
+  const base = `${material}-${sanitizedName}`;
+  let candidate = base;
+  let suffix = 1;
+
+  while (existingIds.has(candidate)) {
+    candidate = `${base}-${suffix++}`;
+  }
+
+  existingIds.add(candidate);
+  return candidate;
+};
+
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', maximumFractionDigits: 0 }).format(value);
 
@@ -277,7 +303,10 @@ export function DashboardView() {
     }
 
     const nowIso = new Date().toISOString();
+  const existingIds = new Set(products.map((product) => product.id));
+  const productId = generateProductId(payload.name, payload.material, existingIds);
     const insertPayload = {
+      id: productId,
       name: payload.name,
       description: payload.description,
       price: payload.price,
@@ -471,7 +500,9 @@ export function DashboardView() {
 
     setIsImporting(true);
     try {
+      const existingIds = new Set(products.map((product) => product.id));
       const payload = entries.map((entry) => ({
+        id: generateProductId(entry.name, entry.material, existingIds),
         name: entry.name,
         description: entry.description,
         price: entry.price,
