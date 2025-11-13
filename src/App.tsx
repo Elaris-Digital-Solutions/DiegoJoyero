@@ -14,6 +14,8 @@ import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { CartDrawer } from './components/CartDrawer';
 import { WhatsappButton } from './components/WhatsappButton';
 import { DashboardView } from './pages/admin/views/DashboardView';
+import { ProtectedRoute } from './pages/admin/components/ProtectedRoute';
+import { LoginPage } from './pages/admin/LoginPage';
 
 function ScrollManager() {
   const { pathname, hash } = useLocation();
@@ -49,7 +51,15 @@ function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/order-success" element={<OrderSuccessPage />} />
             </Route>
-            <Route path="/admin/*" element={<DashboardView />} />
+            <Route path="/admin/login" element={<LoginPage />} />
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute>
+                  <DashboardView />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </BrowserRouter>
       </CartProvider>

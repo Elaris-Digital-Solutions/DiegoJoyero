@@ -1,5 +1,5 @@
 import { type ChangeEvent, type ReactNode, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   ChevronRight,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '../../../components/ui/button';
+import { useAuth } from '../../../contexts/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { cn } from '../../../lib/utils';
 
@@ -83,6 +84,8 @@ export function AdminLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     onSearchChange?.(event.target.value);
@@ -94,6 +97,11 @@ export function AdminLayout({
 
   const handleCollapse = () => {
     setIsSidebarCollapsed((previous) => !previous);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/admin/login', { replace: true });
   };
 
   return (
@@ -185,8 +193,8 @@ export function AdminLayout({
                 </div>
                 {isSidebarCollapsed ? null : (
                   <div className="flex flex-col text-[0.68rem] uppercase tracking-[0.28em] text-muted-foreground">
-                    <span>Cuenta</span>
-                    <span className="text-foreground/80">Propietario</span>
+                    <span>{user?.email ?? 'Cuenta'}</span>
+                    <span className="text-foreground/80">Administrador</span>
                   </div>
                 )}
               </div>
@@ -196,6 +204,7 @@ export function AdminLayout({
                   'mt-2.5 w-full gap-2 border-border/70 text-[0.68rem] uppercase tracking-[0.28em] transition-colors',
                   isSidebarCollapsed ? 'justify-center px-0' : 'justify-start'
                 )}
+                onClick={handleSignOut}
               >
                 <LogOut className="h-4 w-4" />
                 {isSidebarCollapsed ? null : 'Cerrar sesión'}

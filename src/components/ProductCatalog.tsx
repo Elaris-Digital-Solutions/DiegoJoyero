@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowDownWideNarrow, ArrowUpWideNarrow, Clock3, Grid3X3, List, Loader2, Search, Sparkles, Star, X } from 'lucide-react';
+import { ArrowDownWideNarrow, ArrowUpWideNarrow, Clock3, Loader2, Search, Sparkles, Star, X } from 'lucide-react';
 
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase, type Product } from '../lib/supabase';
@@ -8,8 +8,6 @@ import { normalizeCategory } from '../lib/utils';
 import { ProductCard } from './ProductCard';
 
 type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'popularity' | 'newest';
-type ViewMode = 'grid' | 'list';
-
 const staticCategories = ['Anillos', 'Aros', 'Broches', 'Cadenas', 'Dijes', 'Sets'];
 
 const panelVariants = {
