@@ -418,6 +418,54 @@ export function DashboardView() {
         .replace(/[\u0000-\u001F]/g, '')
         .replace(/[\u0300-\u036f]/g, '');
 
+    const detectDelimiter = (line: string): string => {
+      const candidates: string[] = [',', ';', '\t'];
+      let detected: string = ',';
+      let maxCount = 0;
+
+      candidates.forEach((candidate) => {
+        const count = line.split(candidate).length - 1;
+        if (count > maxCount) {
+          detected = candidate;
+          maxCount = count;
+        }
+      });
+
+      return maxCount > 0 ? detected : ',';
+    };
+
+    const splitLine = (line: string, delimiter: string): string[] => {
+      const values: string[] = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let index = 0; index < line.length; index += 1) {
+        const char = line[index];
+
+        if (char === '"') {
+          if (inQuotes && line[index + 1] === '"') {
+            current += '"';
+            index += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+
+        if (char === delimiter && !inQuotes) {
+          values.push(current.trim());
+          current = '';
+          continue;
+        }
+
+        current += char;
+      }
+
+      values.push(current.trim());
+
+      return values.map((entry) => entry.replace(/^"|"$/g, '').trim());
+    };
+
     const toMaterial = (raw: string): ProductInput['material'] => {
       const normalized = normalize(raw).toLowerCase();
       if (!normalized) return theme;
@@ -443,8 +491,9 @@ export function DashboardView() {
       .filter(Boolean);
     if (lines.length <= 1) return [];
 
-    const headers = lines[0]
-      .split(/[,;\t]/)
+    const delimiter = detectDelimiter(lines[0]);
+
+    const headers = splitLine(lines[0], delimiter)
       .map((header) => normalize(header).trim().toLowerCase());
     const nameIndex = headers.findIndex((header) => header === 'nombre' || header === 'name');
     if (nameIndex === -1) return [];
@@ -461,25 +510,29 @@ export function DashboardView() {
     const entries: ProductInput[] = [];
 
     lines.slice(1).forEach((line) => {
-      const values = line.split(/[,;\t]/).map((value) => value.trim());
+      const values = splitLine(line, delimiter);
       const name = values[nameIndex];
       if (!name) return;
 
-      const priceRaw = priceIndex >= 0 ? values[priceIndex] : '0';
+      const priceRaw = priceIndex >= 0 ? values[priceIndex] ?? '0' : '0';
       const price = Number(priceRaw.replace(/[^0-9.,]/g, '').replace(',', '.'));
-      const stock = stockIndex >= 0 ? Number(values[stockIndex]) : 0;
-      const statusRaw = statusIndex >= 0 ? values[statusIndex] : 'active';
-  const materialRaw = materialIndex >= 0 ? values[materialIndex] : theme;
-      const featuredRaw = featuredIndex >= 0 ? values[featuredIndex] : 'false';
+      const stockRaw = stockIndex >= 0 ? values[stockIndex] ?? '0' : '0';
+      const stock = Number(stockRaw.replace(/[^0-9.,-]/g, '').replace(',', '.'));
+      const statusRaw = statusIndex >= 0 ? values[statusIndex] ?? 'active' : 'active';
+      const materialRaw = materialIndex >= 0 ? values[materialIndex] ?? theme : theme;
+      const featuredRaw = featuredIndex >= 0 ? values[featuredIndex] ?? 'false' : 'false';
 
       entries.push({
         name,
-        description: descriptionIndex >= 0 ? values[descriptionIndex] : '',
+        description: descriptionIndex >= 0 ? values[descriptionIndex] ?? '' : '',
         price: Number.isFinite(price) ? price : 0,
         stock: Number.isFinite(stock) ? stock : 0,
-        category: categoryIndex >= 0 ? values[categoryIndex] || 'Sin categoría' : 'Sin categoría',
+        category:
+          categoryIndex >= 0 && values[categoryIndex]
+            ? values[categoryIndex]
+            : 'Sin categoría',
         status: toStatus(statusRaw),
-        imageUrl: imageIndex >= 0 ? values[imageIndex] : '',
+        imageUrl: imageIndex >= 0 ? values[imageIndex] ?? '' : '',
         material: toMaterial(materialRaw),
         featured: toFeatured(featuredRaw),
       });
