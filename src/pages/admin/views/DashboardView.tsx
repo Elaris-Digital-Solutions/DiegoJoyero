@@ -73,6 +73,8 @@ const slugify = (value: string) =>
     .replace(/^-+|-+$/g, '')
     .toLowerCase();
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const generateProductId = (
   name: string,
   material: ProductInput['material'],
@@ -116,6 +118,7 @@ export function DashboardView() {
   const location = useLocation();
   const section = resolveSection(location.pathname);
   const { theme } = useTheme();
+  const [useCustomProductIds, setUseCustomProductIds] = useState(true);
   const [products, setProducts] = useState<ProductRecord[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [hasInitializedActivities, setHasInitializedActivities] = useState(false);
@@ -179,6 +182,9 @@ export function DashboardView() {
         }
 
         const records = (data ?? []).map(mapFromSupabase);
+        if (records.some((item) => UUID_REGEX.test(item.id))) {
+          setUseCustomProductIds(false);
+        }
         setProducts(records);
 
         if (!hasInitializedActivities) {
@@ -303,10 +309,13 @@ export function DashboardView() {
     }
 
     const nowIso = new Date().toISOString();
-  const existingIds = new Set(products.map((product) => product.id));
-  const productId = generateProductId(payload.name, payload.material, existingIds);
-    const insertPayload = {
-      id: productId,
+    const existingIds = new Set(products.map((product) => product.id));
+    const shouldUseCustomId = useCustomProductIds;
+    const productId = shouldUseCustomId
+      ? generateProductId(payload.name, payload.material, existingIds)
+      : undefined;
+
+    const basePayload = {
       name: payload.name,
       description: payload.description,
       price: payload.price,
@@ -320,11 +329,28 @@ export function DashboardView() {
       updated_at: nowIso,
     };
 
-    const { data, error } = await supabase
+    const buildPayload = (includeId: boolean) =>
+      includeId && productId
+        ? {
+            id: productId,
+            ...basePayload,
+          }
+        : { ...basePayload };
+
+    let { data, error } = await supabase
       .from('products')
-      .insert(insertPayload)
+      .insert(buildPayload(Boolean(productId)))
       .select()
       .single<Product>();
+
+    if ((error || !data) && productId && error?.code === '22P02') {
+      setUseCustomProductIds(false);
+      ({ data, error } = await supabase
+        .from('products')
+        .insert(buildPayload(false))
+        .select()
+        .single<Product>());
+    }
 
     if (error || !data) {
       throw error ?? new Error('No se pudo crear el producto.');
@@ -415,6 +441,7 @@ export function DashboardView() {
     const normalize = (value: string) =>
       value
         .normalize('NFD')
+        // eslint-disable-next-line no-control-regex
         .replace(/[\u0000-\u001F]/g, '')
         .replace(/[\u0300-\u036f]/g, '');
 
@@ -554,20 +581,45 @@ export function DashboardView() {
     setIsImporting(true);
     try {
       const existingIds = new Set(products.map((product) => product.id));
-      const payload = entries.map((entry) => ({
-        id: generateProductId(entry.name, entry.material, existingIds),
-        name: entry.name,
-        description: entry.description,
-        price: entry.price,
-        stock: entry.stock,
-        category: entry.category,
-        material: entry.material,
-        image_url: entry.imageUrl,
-        featured: entry.featured,
-        status: entry.status,
-      }));
+      const buildPayload = (includeIds: boolean) =>
+        entries.map((entry) => {
+          const base = {
+            name: entry.name,
+            description: entry.description,
+            price: entry.price,
+            stock: entry.stock,
+            category: entry.category,
+            material: entry.material,
+            image_url: entry.imageUrl,
+            featured: entry.featured,
+            status: entry.status,
+          };
 
-      const { data, error } = await supabase.from('products').insert(payload).select();
+          if (includeIds) {
+            const generatedId = generateProductId(entry.name, entry.material, existingIds);
+            return {
+              id: generatedId,
+              ...base,
+            };
+          }
+
+          return base;
+        });
+
+      const shouldIncludeIds = useCustomProductIds;
+
+      let { data, error } = await supabase
+        .from('products')
+        .insert(buildPayload(shouldIncludeIds))
+        .select();
+
+      if (error && shouldIncludeIds && error.code === '22P02') {
+        setUseCustomProductIds(false);
+        ({ data, error } = await supabase
+          .from('products')
+          .insert(buildPayload(false))
+          .select());
+      }
 
       if (error) {
         throw error;
