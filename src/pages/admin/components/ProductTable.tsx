@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FocusEvent, type FormEvent } from 'react';
 import { Camera, Loader2, Plus, Save, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
@@ -53,6 +53,10 @@ export function ProductTable({
   const [savingIds, setSavingIds] = useState<Record<string, boolean>>({});
   const [deletingIds, setDeletingIds] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleNumericFocus = (event: FocusEvent<HTMLInputElement>) => {
+    event.target.select();
+  };
 
   useEffect(() => {
     setDrafts((previous) => {
@@ -259,6 +263,7 @@ export function ProductTable({
                         step={0.01}
                         value={current.price}
                         onChange={(event) => handleDraftChange(product.id, 'price', Number(event.target.value))}
+                        onFocus={handleNumericFocus}
                         className="w-24 rounded-md border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                       />
                     </td>
@@ -268,6 +273,7 @@ export function ProductTable({
                         min={0}
                         value={current.stock}
                         onChange={(event) => handleDraftChange(product.id, 'stock', Number(event.target.value))}
+                        onFocus={handleNumericFocus}
                         className="w-20 rounded-md border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                       />
                     </td>
@@ -418,6 +424,7 @@ export function ProductTable({
                       step={0.01}
                       value={current.price}
                       onChange={(event) => handleDraftChange(product.id, 'price', Number(event.target.value))}
+                      onFocus={handleNumericFocus}
                       className="rounded-md border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                     />
                   </label>
@@ -428,6 +435,7 @@ export function ProductTable({
                       min={0}
                       value={current.stock}
                       onChange={(event) => handleDraftChange(product.id, 'stock', Number(event.target.value))}
+                      onFocus={handleNumericFocus}
                       className="rounded-md border border-border/60 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                     />
                   </label>
@@ -524,11 +532,16 @@ interface AddProductModalProps {
 }
 
 function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
-  const [form, setForm] = useState<ProductInput>({
+  type AddProductFormState = Omit<ProductInput, 'price' | 'stock'> & {
+    price: string;
+    stock: string;
+  };
+
+  const [form, setForm] = useState<AddProductFormState>({
     name: '',
     description: '',
-    price: 0,
-    stock: 1,
+    price: '',
+    stock: '',
     category: '',
     status: 'active',
     imageUrl: '',
@@ -538,13 +551,17 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const handleNumericFocus = (event: FocusEvent<HTMLInputElement>) => {
+    event.target.select();
+  };
+
   useEffect(() => {
     if (open) {
       setForm({
         name: '',
         description: '',
-        price: 0,
-        stock: 1,
+        price: '',
+        stock: '',
         category: '',
         status: 'active',
         imageUrl: '',
@@ -558,7 +575,7 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
 
   if (!open) return null;
 
-  const handleChange = <K extends keyof typeof form>(field: K, value: (typeof form)[K]) => {
+  const handleChange = <K extends keyof AddProductFormState>(field: K, value: AddProductFormState[K]) => {
     setForm((previous) => ({
       ...previous,
       [field]: value,
@@ -572,10 +589,17 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
     setErrorMessage(null);
     setIsSubmitting(true);
     try {
+      const parsedPrice = Number.parseFloat(form.price.replace(',', '.'));
+      const parsedStock = Number.parseInt(form.stock, 10);
+      const sanitizedPrice = Number.isFinite(parsedPrice) && parsedPrice >= 0 ? parsedPrice : 0;
+      const sanitizedStock = Number.isFinite(parsedStock) && parsedStock >= 0 ? parsedStock : 0;
+
       await onSubmit({
         ...form,
         name: trimmedName,
         category: form.category.trim() || 'Sin categoría',
+        price: sanitizedPrice,
+        stock: sanitizedStock,
       });
       onClose();
     } catch (error) {
@@ -641,7 +665,8 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
                 min={0}
                 step={0.01}
                 value={form.price}
-                onChange={(event) => handleChange('price', Number(event.target.value))}
+                onChange={(event) => handleChange('price', event.target.value)}
+                onFocus={handleNumericFocus}
                 className="rounded-md border border-border/70 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                 required
               />
@@ -652,7 +677,8 @@ function AddProductModal({ open, onClose, onSubmit }: AddProductModalProps) {
                 type="number"
                 min={0}
                 value={form.stock}
-                onChange={(event) => handleChange('stock', Number(event.target.value))}
+                onChange={(event) => handleChange('stock', event.target.value)}
+                onFocus={handleNumericFocus}
                 className="rounded-md border border-border/70 bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                 required
               />
