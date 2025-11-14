@@ -192,9 +192,9 @@ export function AdminLayout({
                   DJ
                 </div>
                 {isSidebarCollapsed ? null : (
-                  <div className="flex flex-col text-[0.68rem] uppercase tracking-[0.28em] text-muted-foreground">
-                    <span>{user?.email ?? 'Cuenta'}</span>
-                    <span className="text-foreground/80">Administrador</span>
+                  <div className="flex min-w-0 flex-col text-[0.68rem] uppercase tracking-[0.28em] text-muted-foreground">
+                    <span className="truncate" title={user?.email ?? undefined}>{user?.email ?? 'Cuenta'}</span>
+                    <span className="text-foreground/80 whitespace-nowrap">Administrador</span>
                   </div>
                 )}
               </div>
